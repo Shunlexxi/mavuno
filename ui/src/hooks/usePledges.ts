@@ -1,11 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
-import { Pledge, PledgeStats } from "../types";
-import { pledgesService } from "../services/pledgesService";
-import {
-  PledgeFilters,
-  CreatePledgeRequest,
-  UpdatePledgeRequest,
-} from "../types/api";
+import { useState, useEffect, useCallback } from 'react';
+import { Pledge, PledgeStats } from '@/types';
+import { pledgesService } from '@/services/pledgesService';
+import { PledgeFilters, CreatePledgeRequest, UpdatePledgeRequest } from '@/types/api';
 
 interface UsePledgesState {
   pledges: Pledge[];
@@ -28,89 +24,74 @@ export function usePledges(filters?: PledgeFilters): UsePledgesReturn {
 
   const fetchPledges = useCallback(async () => {
     try {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-
+      setState(prev => ({ ...prev, loading: true, error: null }));
+      
       const response = await pledgesService.getPledges(filters);
-
+      
       if (response.success) {
-        setState((prev) => ({
+        setState(prev => ({
           ...prev,
           pledges: response.data,
           loading: false,
         }));
       } else {
-        setState((prev) => ({
+        setState(prev => ({
           ...prev,
-          error: response.message || "Failed to fetch pledges",
+          error: response.message || 'Failed to fetch pledges',
           loading: false,
         }));
       }
     } catch (error) {
-      setState((prev) => ({
+      setState(prev => ({
         ...prev,
-        error:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
         loading: false,
       }));
     }
   }, [filters]);
 
-  const createPledge = useCallback(
-    async (pledgeData: CreatePledgeRequest): Promise<Pledge | null> => {
-      try {
-        const response = await pledgesService.createPledge(pledgeData);
-
-        if (response.success) {
-          // Refresh the pledges list
-          await fetchPledges();
-          return response.data;
-        } else {
-          setState((prev) => ({
-            ...prev,
-            error: response.message || "Failed to create pledge",
-          }));
-          return null;
-        }
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Failed to create pledge";
-        setState((prev) => ({ ...prev, error: errorMessage }));
+  const createPledge = useCallback(async (pledgeData: CreatePledgeRequest): Promise<Pledge | null> => {
+    try {
+      const response = await pledgesService.createPledge(pledgeData);
+      
+      if (response.success) {
+        // Refresh the pledges list
+        await fetchPledges();
+        return response.data;
+      } else {
+        setState(prev => ({ ...prev, error: response.message || 'Failed to create pledge' }));
         return null;
       }
-    },
-    [fetchPledges]
-  );
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create pledge';
+      setState(prev => ({ ...prev, error: errorMessage }));
+      return null;
+    }
+  }, [fetchPledges]);
 
-  const updatePledge = useCallback(
-    async (request: UpdatePledgeRequest): Promise<Pledge | null> => {
-      try {
-        const response = await pledgesService.updatePledge(request);
-
-        if (response.success) {
-          // Update the pledges list locally
-          setState((prev) => ({
-            ...prev,
-            pledges: prev.pledges.map((pledge) =>
-              pledge.id === request.pledgeId ? response.data : pledge
-            ),
-          }));
-          return response.data;
-        } else {
-          setState((prev) => ({
-            ...prev,
-            error: response.message || "Failed to update pledge",
-          }));
-          return null;
-        }
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Failed to update pledge";
-        setState((prev) => ({ ...prev, error: errorMessage }));
+  const updatePledge = useCallback(async (request: UpdatePledgeRequest): Promise<Pledge | null> => {
+    try {
+      const response = await pledgesService.updatePledge(request);
+      
+      if (response.success) {
+        // Update the pledges list locally
+        setState(prev => ({
+          ...prev,
+          pledges: prev.pledges.map(pledge => 
+            pledge.id === request.pledgeId ? response.data : pledge
+          ),
+        }));
+        return response.data;
+      } else {
+        setState(prev => ({ ...prev, error: response.message || 'Failed to update pledge' }));
         return null;
       }
-    },
-    []
-  );
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update pledge';
+      setState(prev => ({ ...prev, error: errorMessage }));
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
     fetchPledges();
@@ -145,28 +126,27 @@ export function usePledge(id: string): UsePledgeReturn {
     if (!id) return;
 
     try {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-
+      setState(prev => ({ ...prev, loading: true, error: null }));
+      
       const response = await pledgesService.getPledgeById(id);
-
+      
       if (response.success) {
-        setState((prev) => ({
+        setState(prev => ({
           ...prev,
           pledge: response.data,
           loading: false,
         }));
       } else {
-        setState((prev) => ({
+        setState(prev => ({
           ...prev,
-          error: response.message || "Failed to fetch pledge",
+          error: response.message || 'Failed to fetch pledge',
           loading: false,
         }));
       }
     } catch (error) {
-      setState((prev) => ({
+      setState(prev => ({
         ...prev,
-        error:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
         loading: false,
       }));
     }
@@ -203,28 +183,27 @@ export function usePledgeStats(pledgerId: string): UsePledgeStatsReturn {
     if (!pledgerId) return;
 
     try {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-
+      setState(prev => ({ ...prev, loading: true, error: null }));
+      
       const response = await pledgesService.getPledgeStats(pledgerId);
-
+      
       if (response.success) {
-        setState((prev) => ({
+        setState(prev => ({
           ...prev,
           stats: response.data,
           loading: false,
         }));
       } else {
-        setState((prev) => ({
+        setState(prev => ({
           ...prev,
-          error: response.message || "Failed to fetch pledge stats",
+          error: response.message || 'Failed to fetch pledge stats',
           loading: false,
         }));
       }
     } catch (error) {
-      setState((prev) => ({
+      setState(prev => ({
         ...prev,
-        error:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
         loading: false,
       }));
     }

@@ -1,16 +1,7 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "../../components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   MapPin,
   Calendar,
@@ -21,7 +12,7 @@ import {
   Users,
   Award,
 } from "lucide-react";
-import { Farmer } from "../../types";
+import { Farmer } from "@/types";
 import { useState } from "react";
 
 const achievements = [
@@ -48,9 +39,7 @@ const achievements = [
 ];
 
 export default function FarmerProfile() {
-  const [farmer] = useState<Farmer | undefined>(undefined);
-
-  if (!farmer) return null;
+  const [farmer, setFarmer] = useState<Farmer | undefined>(undefined);
 
   return (
     <div className="p-6 max-w-4xl mx-auto">

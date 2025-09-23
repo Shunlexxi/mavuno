@@ -1,21 +1,17 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "../../components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search, MapPin, Heart, Users, Filter, Star, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useFarmers } from "../../hooks/useFarmers";
+import { useFarmers } from "@/hooks/useFarmers";
 
 export default function FarmersDirectory() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-  const { farmers } = useFarmers({ searchTerm });
+  const { farmers, loading } = useFarmers({ searchTerm });
 
   const handleViewFarmer = (farmerId: string) => {
     navigate(`/pledger/farmers/${farmerId}`);
