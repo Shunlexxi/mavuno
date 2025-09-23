@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mavuno Design System - Clean Web3 Fintech */
+
+@layer base {
+  :root {
+    /* Core Colors - Black, White, Green */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    /* Green Primary Palette */
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 142 52% 45%;
+    --primary-dark: 142 85% 25%;
+
+    /* Neutral Grays */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 20%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 142 30% 95%;
+    --accent-foreground: 142 76% 36%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 95%;
+    --ring: 142 76% 36%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar using Mavuno colors */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 0%;
+    --sidebar-primary: 142 76% 36%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 142 30% 95%;
+    --sidebar-accent-foreground: 142 76% 36%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 142 76% 36%;
+
+    /* Success & Warning Colors */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 93% 58%;
+    --warning-foreground: 0 0% 0%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 52% 45%));
+    --gradient-subtle: linear-gradient(135deg, hsl(0 0% 100%), hsl(0 0% 96%));
+
+    /* Shadows */
+    --shadow-soft: 0 2px 8px -2px hsl(142 76% 36% / 0.1);
+    --shadow-medium: 0 4px 16px -4px hsl(142 76% 36% / 0.15);
+    --shadow-strong: 0 8px 32px -8px hsl(142 76% 36% / 0.2);
+
+    /* Animation Timings */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+}
+
+@layer components {
+  /* Hero Section Styles */
+  .hero-gradient {
+    background: var(--gradient-primary);
+  }
+  
+  .hero-text {
+    @apply text-4xl md:text-6xl font-bold leading-tight;
+  }
+
+  /* Card Styles */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-[var(--shadow-medium)] hover:-translate-y-1;
+  }
+
+  /* Button Variants */
+  .btn-hero {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-4 text-lg font-semibold rounded-lg;
+    transition: var(--transition-smooth);
+  }
+
+  .btn-outline-hero {
+    @apply border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-4 text-lg font-semibold rounded-lg;
+    transition: var(--transition-smooth);
+  }
+
+  /* Animation Classes */
+  .fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  .slide-up {
+    animation: slideUp 0.6s ease-out forwards;
+  }
+
+  .scale-in {
+    animation: scaleIn 0.4s ease-out forwards;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
