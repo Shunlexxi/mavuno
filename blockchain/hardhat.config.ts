@@ -1,32 +1,40 @@
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox-viem";
-import dotenv from "dotenv";
+import type { HardhatUserConfig } from "hardhat/config";
 
-dotenv.config();
+import hardhatToolboxMochaEthersPlugin from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
+import { configVariable } from "hardhat/config";
 
 const config: HardhatUserConfig = {
+  plugins: [hardhatToolboxMochaEthersPlugin],
   solidity: {
-    version: "0.8.28",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
+    profiles: {
+      default: {
+        version: "0.8.28",
+        settings: {
+          optimizer: {
+            enabled: false,
+            runs: 200,
+          },
+          viaIR: true,
+        },
       },
-      viaIR: true,
+      production: {
+        version: "0.8.28",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          viaIR: true,
+        },
+      },
     },
-  },
-  mocha: {
-    timeout: 1000,
   },
   networks: {
     testnet: {
-      url: "https://testnet.hashio.io/api", // Hedera Hashgraph testnet RPC
-      chainId: 296,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      type: "http",
+      url: configVariable("HEDERA_RPC_URL"),
+      accounts: [configVariable("HEDERA_PRIVATE_KEY")],
     },
-  },
-  sourcify: {
-    enabled: false,
   },
 };
 

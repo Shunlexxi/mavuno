@@ -7,6 +7,7 @@ import "./hts-precompile/ExpiryHelper.sol";
 import "./hts-precompile/KeyHelper.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {FiatInterface} from "./interfaces/FiatInterface.sol";
 
 /// @title Fiat Contract
@@ -18,6 +19,8 @@ contract Fiat is
     FiatInterface,
     Ownable
 {
+    using Strings for uint256;
+
     address public underlying;
     int32 public decimals = 2;
 
@@ -29,7 +32,7 @@ contract Fiat is
         string memory symbol,
         int64 autoRenewPeriod
     ) external payable {
-        require(underlying == address(0), "Token already created");
+        require(underlying == address(0), "Underlying already created");
 
         IHederaTokenService.TokenKey[]
             memory keys = new IHederaTokenService.TokenKey[](1);
@@ -50,6 +53,7 @@ contract Fiat is
         token.tokenKeys = keys;
         token.freezeDefault = false;
         token.expiry = createAutoRenewExpiry(address(this), autoRenewPeriod); // Contract auto-renews the token
+        token.memo = "Mavuno Fiat";
 
         // Call HTS to create the token
         (int256 responseCode, address tokenAddress) = createFungibleToken(
@@ -59,7 +63,12 @@ contract Fiat is
         );
         require(
             responseCode == HederaResponseCodes.SUCCESS,
-            "Token creation failed"
+            string(
+                abi.encodePacked(
+                    "Token creation failed: ",
+                    uint256(responseCode).toString()
+                )
+            )
         );
 
         underlying = tokenAddress;
@@ -70,14 +79,27 @@ contract Fiat is
         int256 responseCode = associateToken(account, underlying);
         require(
             responseCode == HederaResponseCodes.SUCCESS,
-            "Association failed"
+            string(
+                abi.encodePacked(
+                    "Token associate failed: ",
+                    uint256(responseCode).toString()
+                )
+            )
         );
     }
 
     // Transfers tokens from account to user
     function transferToken(address from, address to, int64 amount) external {
         int256 responseCode = transferToken(underlying, from, to, amount);
-        require(responseCode == HederaResponseCodes.SUCCESS, "Transfer failed");
+        require(
+            responseCode == HederaResponseCodes.SUCCESS,
+            string(
+                abi.encodePacked(
+                    "Token transfer failed: ",
+                    uint256(responseCode).toString()
+                )
+            )
+        );
     }
 
     // Transfers tokens from treasury to user
@@ -86,7 +108,15 @@ contract Fiat is
         bytes[] memory metadata
     ) external onlyOwner {
         (int responseCode, , ) = mintToken(underlying, amount, metadata);
-        require(responseCode == HederaResponseCodes.SUCCESS, "Mint failed");
+        require(
+            responseCode == HederaResponseCodes.SUCCESS,
+            string(
+                abi.encodePacked(
+                    "Token mint failed: ",
+                    uint256(responseCode).toString()
+                )
+            )
+        );
 
         int256 responseCode2 = transferToken(
             underlying,
@@ -96,7 +126,12 @@ contract Fiat is
         );
         require(
             responseCode2 == HederaResponseCodes.SUCCESS,
-            "Transfer failed"
+            string(
+                abi.encodePacked(
+                    "Token transfer failed: ",
+                    uint256(responseCode).toString()
+                )
+            )
         );
     }
 }
