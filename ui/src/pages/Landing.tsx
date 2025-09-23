@@ -18,8 +18,8 @@ import {
   ArrowDownCircle,
   Minus,
 } from "lucide-react";
-import heroImage from "@/assets/hero-farming.jpg";
-import communityImage from "@/assets/community-web3.jpg";
+import heroImage from "../assets/hero-farming.jpg";
+import communityImage from "../assets/community-web3.jpg";
 import PoolActionDialog from "../components/dialogs/PoolActionDialog";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { usePools } from "../hooks/usePools";
