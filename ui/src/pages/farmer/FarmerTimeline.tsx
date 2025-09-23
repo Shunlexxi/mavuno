@@ -1,9 +1,13 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Textarea } from "../../components/ui/textarea";
+import { Badge } from "../../components/ui/badge";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "../../components/ui/avatar";
 import {
   Heart,
   MessageCircle,
@@ -14,8 +18,8 @@ import {
   Calendar,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import NewUpdateDialog from "@/components/dialogs/NewUpdateDialog";
-import { useTimeline } from "@/hooks/useTimeline";
+import NewUpdateDialog from "../../components/dialogs/NewUpdateDialog";
+import { useTimeline } from "../../hooks/useTimeline";
 
 export default function FarmerTimeline() {
   const [newPost, setNewPost] = useState("");
@@ -171,8 +175,8 @@ export default function FarmerTimeline() {
                         post.images.length === 1
                           ? "grid-cols-1"
                           : post.images.length === 2
-                          ? "grid-cols-2"
-                          : "grid-cols-3"
+                            ? "grid-cols-2"
+                            : "grid-cols-3"
                       }`}
                     >
                       {post.images.map((image, index) => (

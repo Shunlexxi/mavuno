@@ -9,7 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar";
+} from "../ui/sidebar";
 import { Home, Users, User, MessageSquare } from "lucide-react";
 
 const farmerItems = [

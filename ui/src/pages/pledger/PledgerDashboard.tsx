@@ -1,7 +1,16 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "../../components/ui/avatar";
 import {
   TrendingUp,
   Heart,
@@ -11,8 +20,8 @@ import {
   Plus,
   Eye,
 } from "lucide-react";
-import PledgeActionDialog from "@/components/dialogs/PledgeActionDialog";
-import { usePledges, usePledgeStats } from "@/hooks/usePledges";
+import PledgeActionDialog from "../../components/dialogs/PledgeActionDialog";
+import { usePledges, usePledgeStats } from "../../hooks/usePledges";
 
 export default function PledgerDashboard() {
   const currentUserId = "current-user"; // In real app, this would come from auth
