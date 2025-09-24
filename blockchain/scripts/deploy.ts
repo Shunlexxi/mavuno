@@ -20,6 +20,7 @@ async function main() {
   });
 
   console.log("NGN:", await ngn.getAddress());
+  console.log("NGN underlying:", await ngn.underlying());
 
   const cedi = await Fiat.deploy();
   await cedi.waitForDeployment();
@@ -29,6 +30,7 @@ async function main() {
   });
 
   console.log("CEDI:", await cedi.getAddress());
+  console.log("CEDI underlying:", await cedi.underlying());
 
   const rand = await Fiat.deploy();
   await rand.waitForDeployment();
@@ -38,6 +40,7 @@ async function main() {
   });
 
   console.log("RAND:", await rand.getAddress());
+  console.log("RAND underlying:", await rand.underlying());
 
   // --- Deploy Oracle ---
   const Oracle = await ethers.getContractFactory("Oracle");
@@ -51,11 +54,19 @@ async function main() {
   await oracle.setfiatPerHbar(await cedi.getAddress(), 1512n);
   await oracle.setfiatPerHbar(await rand.getAddress(), 1602n);
 
+  // --- Deploy Farmer's Registry ---
+  const FarmerRegistry = await ethers.getContractFactory("FarmerRegistry");
+  const farmerRegistry = await FarmerRegistry.deploy();
+  await farmerRegistry.waitForDeployment();
+
+  console.log("FarmerRegistry deployed at:", await farmerRegistry.getAddress());
+
   // --- Deploy MavunoFactory ---
   const MavunoFactory = await ethers.getContractFactory("MavunoFactory");
   const mavunoFactory = await MavunoFactory.deploy(
     deployer.address,
-    await oracle.getAddress()
+    await oracle.getAddress(),
+    await farmerRegistry.getAddress()
   );
   await mavunoFactory.waitForDeployment();
 
@@ -66,7 +77,18 @@ async function main() {
   await mavunoFactory.createPool(await cedi.getAddress());
   await mavunoFactory.createPool(await rand.getAddress());
 
-  console.log("Pools created for NGN, CEDI, RAND.");
+  console.log(
+    "NGN pool:",
+    await mavunoFactory.fiatToPool(await ngn.getAddress())
+  );
+  console.log(
+    "CEDI pool:",
+    await mavunoFactory.fiatToPool(await cedi.getAddress())
+  );
+  console.log(
+    "RAND pool:",
+    await mavunoFactory.fiatToPool(await rand.getAddress())
+  );
 }
 
 main().catch((err) => {

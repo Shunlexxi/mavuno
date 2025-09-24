@@ -54,6 +54,7 @@ contract Fiat is
         token.freezeDefault = false;
         token.expiry = createAutoRenewExpiry(address(this), autoRenewPeriod); // Contract auto-renews the token
         token.memo = "Mavuno Fiat";
+        token.maxSupply = 10_000_000_000;
 
         // Call HTS to create the token
         (int256 responseCode, address tokenAddress) = createFungibleToken(
@@ -74,40 +75,9 @@ contract Fiat is
         underlying = tokenAddress;
     }
 
-    // Associates a token to a user account
-    function associateToken(address account) external {
-        int256 responseCode = associateToken(account, underlying);
-        require(
-            responseCode == HederaResponseCodes.SUCCESS,
-            string(
-                abi.encodePacked(
-                    "Token associate failed: ",
-                    uint256(responseCode).toString()
-                )
-            )
-        );
-    }
-
-    // Transfers tokens from account to user
-    function transferToken(address from, address to, int64 amount) external {
-        int256 responseCode = transferToken(underlying, from, to, amount);
-        require(
-            responseCode == HederaResponseCodes.SUCCESS,
-            string(
-                abi.encodePacked(
-                    "Token transfer failed: ",
-                    uint256(responseCode).toString()
-                )
-            )
-        );
-    }
-
     // Transfers tokens from treasury to user
-    function mintToken(
-        int64 amount,
-        bytes[] memory metadata
-    ) external onlyOwner {
-        (int responseCode, , ) = mintToken(underlying, amount, metadata);
+    function mint(int64 amount) external onlyOwner {
+        (int responseCode, , ) = mintToken(underlying, amount, new bytes[](0));
         require(
             responseCode == HederaResponseCodes.SUCCESS,
             string(

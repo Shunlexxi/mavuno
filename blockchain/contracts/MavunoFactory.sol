@@ -10,11 +10,14 @@ import {PledgeManager} from "./PledgeManager.sol";
 /// @title MavunoFactory
 /// @notice Deploys and manages LendingPool contracts for different HTS fiat tokens (NGN, CEDI, RAND, etc.)
 contract MavunoFactory is Ownable {
-    /// @notice Pledge manager (shared across all pools)
-    address public pledgeManager;
+    /// @notice Controller (shared across all pools)
+    address public controller;
 
     /// @notice Oracle (shared across all pools)
     address public oracle;
+
+    /// @notice FarmerRegistry (shared across all pools)
+    address public registry;
 
     /// @notice All pools deployed, indexed by Fiat address
     mapping(address => address) public fiatToPool;
@@ -24,13 +27,20 @@ contract MavunoFactory is Ownable {
 
     event PoolCreated(address indexed fiat, address pool);
     event OracleUpdated(address indexed newOracle);
-    event PledgeManagerUpdated(address indexed newPledgeManager);
+    event ControllerUpdated(address indexed newController);
 
-    constructor(address _pledgeManager, address _oracle) Ownable(msg.sender) {
-        require(_pledgeManager != address(0), "invalid-pledge-manager");
+    constructor(
+        address _controller,
+        address _oracle,
+        address _registry
+    ) Ownable(msg.sender) {
+        require(_controller != address(0), "invalid-controller");
         require(_oracle != address(0), "invalid-oracle");
-        pledgeManager = _pledgeManager;
+        require(_registry != address(0), "invalid-registry");
+
+        controller = _controller;
         oracle = _oracle;
+        registry = _registry;
     }
 
     /// @notice Create a new LendingPool for an HTS fiat token (NGN, CEDI, RAND, etc.)
@@ -41,7 +51,7 @@ contract MavunoFactory is Ownable {
         require(fiat != address(0), "invalid-fiat");
         require(fiatToPool[fiat] == address(0), "pool-exists");
 
-        LendingPool lp = new LendingPool(pledgeManager, oracle, fiat);
+        LendingPool lp = new LendingPool(controller, oracle, fiat, registry);
 
         pool = address(lp);
         fiatToPool[fiat] = pool;
@@ -62,10 +72,10 @@ contract MavunoFactory is Ownable {
         emit OracleUpdated(_oracle);
     }
 
-    /// @notice Update pledge manager for future pools
-    function setPledgeManager(address _pledgeManager) external onlyOwner {
-        require(_pledgeManager != address(0), "invalid-pledge-manager");
-        pledgeManager = _pledgeManager;
-        emit PledgeManagerUpdated(_pledgeManager);
+    /// @notice Update controller for future pools
+    function setPledgeManager(address _controller) external onlyOwner {
+        require(_controller != address(0), "invalid-pledge-manager");
+        controller = _controller;
+        emit ControllerUpdated(_controller);
     }
 }

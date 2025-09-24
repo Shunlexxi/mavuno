@@ -13,7 +13,6 @@ import {
   TrendingUp,
   Globe,
   ArrowRight,
-  Wallet,
   ArrowUpCircle,
   ArrowDownCircle,
   Minus,
@@ -23,10 +22,8 @@ import communityImage from "@/assets/community-web3.jpg";
 import PoolActionDialog from "../components/dialogs/PoolActionDialog";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { usePools } from "../hooks/usePools";
-import { useMavunoAppKit } from "../contexts/appContext";
 
 export default function Landing() {
-  const { open } = useMavunoAppKit();
   const navigate = useNavigate();
   const { pools, loading: poolsLoading, generateChartData } = usePools();
 
@@ -69,10 +66,7 @@ export default function Landing() {
             <span className="text-2xl font-bold">Mavuno</span>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="gap-2" onClick={() => open()}>
-              <Wallet className="w-4 h-4" />
-              Connect Wallet
-            </Button>
+            <appkit-button />
           </div>
         </div>
       </header>

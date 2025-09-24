@@ -1,9 +1,10 @@
+import { Hex } from "viem";
+
 export interface User {
-  id: string;
   name: string;
   email: string;
   avatar?: string;
-  accountId?: string;
+  address?: string;
   createdAt: string;
 }
 
@@ -46,6 +47,7 @@ export interface Pledge {
 
 export interface Pool {
   id: string;
+  address: Hex;
   currency: "NGN" | "CEDI" | "RAND";
   totalLiquidity: number;
   totalBorrowed: number;

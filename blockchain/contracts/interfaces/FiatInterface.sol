@@ -5,7 +5,5 @@ pragma solidity ^0.8.28;
 interface FiatInterface {
     function underlying() external view returns (address);
 
-    function associateToken(address account) external;
-
-    function transferToken(address from, address to, int64 amount) external;
+    function decimals() external view returns (int32);
 }

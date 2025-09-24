@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Toaster } from "./components/ui/toaster";
 import { Toaster as Sonner } from "./components/ui/sonner";
 import { TooltipProvider } from "./components/ui/tooltip";
@@ -13,12 +14,49 @@ import PledgerDashboard from "./pages/pledger/PledgerDashboard";
 import FarmersDirectory from "./pages/pledger/FarmersDirectory";
 import PledgePage from "./pages/pledger/PledgePage";
 import NotFound from "./pages/NotFound";
-import { MavunoAppKitProvider } from "./contexts/appContext";
+import { hederaTestnet } from "@reown/appkit/networks";
+import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
+import { WagmiProvider } from "wagmi";
+import { createAppKit } from "@reown/appkit/react";
+
 const queryClient = new QueryClient();
 
+const projectId = import.meta.env.VITE_REOWN_PROJECT_ID;
+
+const metadata = {
+  name: "Mavuno",
+  description:
+    "Empowering rural farmers through community-backed micro-lending on Hedera Hashgraph.",
+  url: window.location.href,
+  icons: ["https://avatars.githubusercontent.com/u/31002956"],
+};
+
+const networks = [hederaTestnet];
+
+const wagmiAdapter = new WagmiAdapter({
+  networks,
+  projectId,
+  ssr: true,
+});
+
+createAppKit({
+  adapters: [wagmiAdapter],
+  networks: networks as any,
+  themeMode: "light",
+  featuredWalletIds: [
+    "a29498d225fa4b13468ff4d6cf4ae0ea4adcbd95f07ce8a843a1dee10b632f3f",
+    "a9104b630bac1929ad9ac2a73a17ed4beead1889341f307bff502f89b46c8501",
+  ],
+  projectId,
+  metadata,
+  features: {
+    analytics: true,
+  },
+});
+
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <MavunoAppKitProvider>
+  <WagmiProvider config={wagmiAdapter.wagmiConfig}>
+    <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -47,8 +85,8 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </MavunoAppKitProvider>
-  </QueryClientProvider>
+    </QueryClientProvider>
+  </WagmiProvider>
 );
 
 export default App;

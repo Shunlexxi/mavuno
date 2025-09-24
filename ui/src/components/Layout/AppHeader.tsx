@@ -1,10 +1,8 @@
 import { Button } from "../ui/button";
 import { SidebarTrigger } from "../ui/sidebar";
 import { Wallet, User } from "lucide-react";
-import { useMavunoAppKit } from "../../contexts/appContext";
 
 export function AppHeader() {
-  const { open } = useMavunoAppKit();
 
   return (
     <header className="sticky top-0 h-16 border-b border-border bg-background flex items-center justify-between px-6">
@@ -23,7 +21,7 @@ export function AppHeader() {
           variant="outline"
           size="sm"
           className="gap-2"
-          onClick={() => open()}
+          onClick={() => {}}
         >
           <Wallet className="w-4 h-4" />
           Connect Wallet
