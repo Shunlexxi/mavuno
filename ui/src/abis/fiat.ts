@@ -27,6 +27,44 @@ export const fiatAbi = [
     type: "error",
   },
   {
+    inputs: [],
+    name: "TokenAlreadyCreated",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "int256",
+        name: "responseCode",
+        type: "int256",
+      },
+    ],
+    name: "TokenCreationFailed",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "int256",
+        name: "responseCode",
+        type: "int256",
+      },
+    ],
+    name: "TokenMintFailed",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "int256",
+        name: "responseCode",
+        type: "int256",
+      },
+    ],
+    name: "TokenTransferFailed",
+    type: "error",
+  },
+  {
     anonymous: false,
     inputs: [
       {
@@ -62,6 +100,38 @@ export const fiatAbi = [
       },
     ],
     name: "OwnershipTransferred",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "tokenAddress",
+        type: "address",
+      },
+    ],
+    name: "TokenCreated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "int64",
+        name: "amount",
+        type: "int64",
+      },
+    ],
+    name: "TokensMinted",
     type: "event",
   },
   {
@@ -102,6 +172,11 @@ export const fiatAbi = [
   },
   {
     inputs: [
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
       {
         internalType: "int64",
         name: "amount",

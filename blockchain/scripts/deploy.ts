@@ -50,9 +50,9 @@ async function main() {
   console.log("Oracle deployed at:", await oracle.getAddress());
 
   // Initialize oracle
-  await oracle.setfiatPerHbar(await ngn.getAddress(), 1937n);
-  await oracle.setfiatPerHbar(await cedi.getAddress(), 1512n);
-  await oracle.setfiatPerHbar(await rand.getAddress(), 1602n);
+  await oracle.setfiatPerHbar(await ngn.getAddress(), 19_000);
+  await oracle.setfiatPerHbar(await cedi.getAddress(), 15_000);
+  await oracle.setfiatPerHbar(await rand.getAddress(), 17_000);
 
   // --- Deploy Farmer's Registry ---
   const FarmerRegistry = await ethers.getContractFactory("FarmerRegistry");
@@ -95,3 +95,17 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+
+// Deploying contracts with: 0x2531dCd3dC58559c19EEE09736443D026D40d5f5
+// NGN: 0xf7Db3DE3326355141961AACBd18d8c084ed066c1
+// NGN underlying: 0x000000000000000000000000000000000069316A
+// CEDI: 0x9f00c23AcF79a173696Ee945e87D4A7Caf79A059
+// CEDI underlying: 0x000000000000000000000000000000000069316C
+// RAND: 0x060C9Fd383CF44aC9300F4CFE2fE344FABD7Bba8
+// RAND underlying: 0x000000000000000000000000000000000069316e
+// Oracle deployed at: 0x0023f68D4190e0B57892746056b8C9e6E46f26B5
+// FarmerRegistry deployed at: 0x3e064b29aA1Ac26cE62FBaC3Be989CFD280AcfC1
+// MavunoFactory deployed at: 0x50066067338a90edEC11713ccA6e8993b6cd2371
+// NGN pool: 0xFBE418B237598b053C79A905E5cA2bdf7FE43E73
+// CEDI pool: 0x7D728230506679AE94B1B5B78320A6fEA236F19c
+// RAND pool: 0x4b7bDA3be01660c52B52a45aBB8a80becE6630fb

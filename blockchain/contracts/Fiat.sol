@@ -7,11 +7,10 @@ import "./hts-precompile/ExpiryHelper.sol";
 import "./hts-precompile/KeyHelper.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {FiatInterface} from "./interfaces/FiatInterface.sol";
 
 /// @title Fiat Contract
-/// @notice Shows how to create and associate a token using HederaTokenService
+/// @notice Creates and manages HTS tokens for fiat currencies (NGN, CEDI, RAND, etc.)
 contract Fiat is
     HederaTokenService,
     KeyHelper,
@@ -19,10 +18,16 @@ contract Fiat is
     FiatInterface,
     Ownable
 {
-    using Strings for uint256;
+    error TokenAlreadyCreated();
+    error TokenCreationFailed(int256 responseCode);
+    error TokenMintFailed(int256 responseCode);
+    error TokenTransferFailed(int256 responseCode);
 
     address public underlying;
     int32 public decimals = 2;
+
+    event TokenCreated(address indexed tokenAddress);
+    event TokensMinted(address indexed to, int64 amount);
 
     constructor() Ownable(msg.sender) {}
 
@@ -31,15 +36,36 @@ contract Fiat is
         string memory name,
         string memory symbol,
         int64 autoRenewPeriod
-    ) external payable {
-        require(underlying == address(0), "Underlying already created");
+    ) external payable onlyOwner {
+        if (underlying != address(0)) revert TokenAlreadyCreated();
 
         IHederaTokenService.TokenKey[]
-            memory keys = new IHederaTokenService.TokenKey[](1);
+            memory keys = new IHederaTokenService.TokenKey[](4);
 
-        // Set this contract as supply for the token
+        // Supply key - contract can mint/burn
         keys[0] = getSingleKey(
             KeyType.SUPPLY,
+            KeyValueType.CONTRACT_ID,
+            address(this)
+        );
+
+        // Admin key - contract can update token properties
+        keys[1] = getSingleKey(
+            KeyType.ADMIN,
+            KeyValueType.CONTRACT_ID,
+            address(this)
+        );
+
+        // Pause key - contract can pause token
+        keys[2] = getSingleKey(
+            KeyType.PAUSE,
+            KeyValueType.CONTRACT_ID,
+            address(this)
+        );
+
+        // KYC key - contract can grant/revoke KYC (if needed)
+        keys[3] = getSingleKey(
+            KeyType.KYC,
             KeyValueType.CONTRACT_ID,
             address(this)
         );
@@ -48,60 +74,52 @@ contract Fiat is
         IHederaTokenService.HederaToken memory token;
         token.name = name;
         token.symbol = symbol;
-        token.treasury = address(this); // contract holds treasury
+        token.treasury = address(this);
         token.tokenSupplyType = true; // finite supply
         token.tokenKeys = keys;
         token.freezeDefault = false;
-        token.expiry = createAutoRenewExpiry(address(this), autoRenewPeriod); // Contract auto-renews the token
-        token.memo = "Mavuno Fiat";
+        token.expiry = createAutoRenewExpiry(address(this), autoRenewPeriod);
+        token.memo = "Mavuno Fiat Token";
         token.maxSupply = 10_000_000_000;
 
         // Call HTS to create the token
         (int256 responseCode, address tokenAddress) = createFungibleToken(
             token,
-            0,
+            0, // initial supply
             decimals
         );
-        require(
-            responseCode == HederaResponseCodes.SUCCESS,
-            string(
-                abi.encodePacked(
-                    "Token creation failed: ",
-                    uint256(responseCode).toString()
-                )
-            )
-        );
+
+        if (responseCode != HederaResponseCodes.SUCCESS) {
+            revert TokenCreationFailed(responseCode);
+        }
 
         underlying = tokenAddress;
+        emit TokenCreated(tokenAddress);
     }
 
-    // Transfers tokens from treasury to user
-    function mint(int64 amount) external onlyOwner {
-        (int responseCode, , ) = mintToken(underlying, amount, new bytes[](0));
-        require(
-            responseCode == HederaResponseCodes.SUCCESS,
-            string(
-                abi.encodePacked(
-                    "Token mint failed: ",
-                    uint256(responseCode).toString()
-                )
-            )
+    /// @notice Mint tokens
+    function mint(address to, int64 amount) external {
+        // Mint to treasury first
+        (int256 responseCode, , ) = mintToken(
+            underlying,
+            amount,
+            new bytes[](0)
         );
+        if (responseCode != HederaResponseCodes.SUCCESS) {
+            revert TokenMintFailed(responseCode);
+        }
 
-        int256 responseCode2 = transferToken(
+        // Transfer from treasury to recipient
+        int256 transferResponse = transferToken(
             underlying,
             address(this),
-            msg.sender,
+            to,
             amount
         );
-        require(
-            responseCode2 == HederaResponseCodes.SUCCESS,
-            string(
-                abi.encodePacked(
-                    "Token transfer failed: ",
-                    uint256(responseCode).toString()
-                )
-            )
-        );
+        if (transferResponse != HederaResponseCodes.SUCCESS) {
+            revert TokenTransferFailed(transferResponse);
+        }
+
+        emit TokensMinted(to, amount);
     }
 }

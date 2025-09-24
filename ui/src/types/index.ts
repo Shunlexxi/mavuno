@@ -4,13 +4,14 @@ export interface User {
   address: string;
   name: string;
   email: string;
-  avatar?: string;
   location: string;
   farmSize: string;
   cropType: string;
   description: string;
   verified: boolean;
   createdAt: string;
+  totalBorrowed: number;
+  totalRepaid: number;
 }
 
 export interface Farmer extends User {
@@ -55,16 +56,14 @@ export interface Pool {
 }
 
 export interface PoolPosition {
-  id: string;
-  poolAddress: string;
-  account: string;
+  poolAddress: Hex;
+  account: Hex;
   lp: bigint;
   borrow: bigint;
+  outstanding: bigint;
   healthFactor: bigint;
-  totalBorrowed: bigint;
-  totalRepaid: bigint;
   totalPledge: bigint;
-  canUsePledge: boolean;
+  active: boolean;
 }
 
 export interface PledgeStats {

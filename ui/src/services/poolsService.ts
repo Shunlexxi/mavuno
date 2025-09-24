@@ -1,4 +1,5 @@
 import { lendingPoolAbi } from "@/abis/lendingPool";
+import { pledgeManager } from "@/abis/pledgeManager";
 import { Pool, PoolPosition } from "@/types";
 import { ApiResponse } from "@/types/api";
 import { Contracts, publicClient } from "@/utils/constants";
@@ -66,10 +67,77 @@ export class PoolsService {
     }
   }
 
-  private async loadPosition(address, account): Promise<PoolPosition> {
+  private async loadPosition(
+    address: Hex,
+    account: Hex
+  ): Promise<PoolPosition> {
     try {
+      const lp = (await publicClient.readContract({
+        abi: lendingPoolAbi,
+        address,
+        functionName: "totalSupply",
+        authorizationList: undefined,
+      })) as bigint;
+
+      const borrow = (await publicClient.readContract({
+        abi: lendingPoolAbi,
+        address,
+        functionName: "farmerPrincipal",
+        args: [account],
+        authorizationList: undefined,
+      })) as bigint;
+
+      const outstanding = (await publicClient.readContract({
+        abi: lendingPoolAbi,
+        address,
+        functionName: "totalSupply",
+        args: [account],
+        authorizationList: undefined,
+      })) as bigint;
+
+      const healthFactor = (await publicClient.readContract({
+        abi: lendingPoolAbi,
+        address,
+        functionName: "healthFactor",
+        args: [account],
+        authorizationList: undefined,
+      })) as bigint;
+
+      const totalPledge = (await publicClient.readContract({
+        abi: pledgeManager,
+        address: "0x",
+        functionName: "totalSupply",
+        authorizationList: undefined,
+      })) as bigint;
+
+      const active = (await publicClient.readContract({
+        abi: pledgeManager,
+        address: "0x",
+        functionName: "active",
+        authorizationList: undefined,
+      })) as boolean;
+
+      return {
+        poolAddress: address,
+        account,
+        lp,
+        borrow,
+        outstanding,
+        healthFactor,
+        totalPledge,
+        active,
+      };
     } catch (error) {
-      return {};
+      return {
+        poolAddress: address,
+        account,
+        lp: 0n,
+        borrow: 0n,
+        outstanding: 0n,
+        healthFactor: 0n,
+        totalPledge: 0n,
+        active: false,
+      };
     }
   }
 

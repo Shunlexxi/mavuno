@@ -16,6 +16,11 @@ export const pledgeManager = [
     type: "constructor",
   },
   {
+    inputs: [],
+    name: "ActivePledge",
+    type: "error",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -102,6 +107,21 @@ export const pledgeManager = [
     type: "error",
   },
   {
+    inputs: [],
+    name: "InsufficientBalance",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NoCollateral",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NotFarmer",
+    type: "error",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -127,6 +147,34 @@ export const pledgeManager = [
     inputs: [],
     name: "ReentrancyGuardReentrantCall",
     type: "error",
+  },
+  {
+    inputs: [],
+    name: "TransferFailed",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ZeroAddress",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ZeroAmount",
+    type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "active",
+        type: "bool",
+      },
+    ],
+    name: "ActiveStatusChanged",
+    type: "event",
   },
   {
     anonymous: false,
@@ -171,7 +219,7 @@ export const pledgeManager = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "collateralSeized",
+        name: "amount",
         type: "uint256",
       },
     ],
@@ -247,45 +295,7 @@ export const pledgeManager = [
       {
         indexed: true,
         internalType: "address",
-        name: "pledger",
-        type: "address",
-      },
-    ],
-    name: "WithdrawalCancelled",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "pledger",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "unlockAt",
-        type: "uint256",
-      },
-    ],
-    name: "WithdrawalRequested",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "pledger",
+        name: "withdrawer",
         type: "address",
       },
       {
@@ -297,6 +307,19 @@ export const pledgeManager = [
     ],
     name: "Withdrawn",
     type: "event",
+  },
+  {
+    inputs: [],
+    name: "active",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
     inputs: [
@@ -366,44 +389,6 @@ export const pledgeManager = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "value",
-        type: "uint256",
-      },
-    ],
-    name: "burn",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "value",
-        type: "uint256",
-      },
-    ],
-    name: "burnFrom",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "cancelWithdrawal",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "decimals",
     outputs: [
@@ -418,6 +403,13 @@ export const pledgeManager = [
   },
   {
     inputs: [],
+    name: "emergencyWithdraw",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "farmer",
     outputs: [
       {
@@ -427,13 +419,6 @@ export const pledgeManager = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "finalizeWithdraw",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -476,7 +461,13 @@ export const pledgeManager = [
     type: "function",
   },
   {
-    inputs: [],
+    inputs: [
+      {
+        internalType: "address",
+        name: "behalfOf",
+        type: "address",
+      },
+    ],
     name: "pledge",
     outputs: [],
     stateMutability: "payable",
@@ -505,25 +496,12 @@ export const pledgeManager = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
+        internalType: "bool",
+        name: "_active",
+        type: "bool",
       },
     ],
-    name: "requestWithdrawal",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "sec",
-        type: "uint256",
-      },
-    ],
-    name: "setWithdrawalDelay",
+    name: "setActive",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -621,40 +599,16 @@ export const pledgeManager = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "withdrawalDelaySeconds",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "withdrawalRequests",
-    outputs: [
       {
         internalType: "uint256",
         name: "amount",
         type: "uint256",
       },
-      {
-        internalType: "uint256",
-        name: "unlockTimestamp",
-        type: "uint256",
-      },
     ],
-    stateMutability: "view",
+    name: "withdraw",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {

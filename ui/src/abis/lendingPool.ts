@@ -29,6 +29,167 @@ export const lendingPoolAbi = [
     inputs: [
       {
         internalType: "address",
+        name: "spender",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "allowance",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "needed",
+        type: "uint256",
+      },
+    ],
+    name: "ERC20InsufficientAllowance",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "balance",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "needed",
+        type: "uint256",
+      },
+    ],
+    name: "ERC20InsufficientBalance",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "approver",
+        type: "address",
+      },
+    ],
+    name: "ERC20InvalidApprover",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+    ],
+    name: "ERC20InvalidReceiver",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+    ],
+    name: "ERC20InvalidSender",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "spender",
+        type: "address",
+      },
+    ],
+    name: "ERC20InvalidSpender",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ExceedsBorrowCapacity",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InDebt",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InsufficientLPBalance",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InsufficientLiquidity",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InterestOverflow",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidDuration",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidPledgeManager",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "LTVBelowThreshold",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NoBorrowCapacity",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NoDebt",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NoLPSupply",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NoOutstandingLoan",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "OracleZero",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "OverflowAfterPay",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "OverflowNewPrincipal",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "owner",
         type: "address",
       },
@@ -49,8 +210,53 @@ export const lendingPoolAbi = [
   },
   {
     inputs: [],
+    name: "PrincipalOverflow",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "ReentrancyGuardReentrantCall",
     type: "error",
+  },
+  {
+    inputs: [],
+    name: "ZeroAccount",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ZeroAddress",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ZeroAmount",
+    type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "spender",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "Approval",
+    type: "event",
   },
   {
     anonymous: false,
@@ -75,25 +281,6 @@ export const lendingPoolAbi = [
       },
     ],
     name: "Borrowed",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "",
-        type: "bytes",
-      },
-    ],
-    name: "CallResponseEvent",
     type: "event",
   },
   {
@@ -161,8 +348,39 @@ export const lendingPoolAbi = [
         name: "amount",
         type: "int64",
       },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "lpMinted",
+        type: "uint256",
+      },
     ],
     name: "Supplied",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "Transfer",
     type: "event",
   },
   {
@@ -179,6 +397,12 @@ export const lendingPoolAbi = [
         internalType: "int64",
         name: "amount",
         type: "int64",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "lpBurned",
+        type: "uint256",
       },
     ],
     name: "WithdrawnSupply",
@@ -205,6 +429,80 @@ export const lendingPoolAbi = [
         internalType: "int64",
         name: "",
         type: "int64",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "activatePledge",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "spender",
+        type: "address",
+      },
+    ],
+    name: "allowance",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "spender",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "approve",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "balanceOf",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -250,25 +548,32 @@ export const lendingPoolAbi = [
         type: "address",
       },
     ],
-    name: "checkAndLiquidate",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "farmerBorrowedAt",
+    name: "borrowable",
     outputs: [
       {
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "deactivatePledge",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "decimals",
+    outputs: [
+      {
+        internalType: "uint8",
+        name: "",
+        type: "uint8",
       },
     ],
     stateMutability: "view",
@@ -282,12 +587,17 @@ export const lendingPoolAbi = [
         type: "address",
       },
     ],
-    name: "farmerPrincipal",
+    name: "farmerPositions",
     outputs: [
       {
         internalType: "int64",
-        name: "",
+        name: "principal",
         type: "int64",
+      },
+      {
+        internalType: "uint256",
+        name: "borrowedAt",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -307,8 +617,40 @@ export const lendingPoolAbi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "farmer",
+        type: "address",
+      },
+    ],
+    name: "healthFactorLTV",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "farmer",
+        type: "address",
+      },
+    ],
+    name: "liquidate",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
-    name: "idleLiquidity",
+    name: "loanToValueBp",
     outputs: [
       {
         internalType: "int64",
@@ -321,12 +663,12 @@ export const lendingPoolAbi = [
   },
   {
     inputs: [],
-    name: "loanToValueBp",
+    name: "name",
     outputs: [
       {
-        internalType: "int64",
+        internalType: "string",
         name: "",
-        type: "int64",
+        type: "string",
       },
     ],
     stateMutability: "view",
@@ -378,35 +720,6 @@ export const lendingPoolAbi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "bytes",
-        name: "encodedFunctionSelector",
-        type: "bytes",
-      },
-    ],
-    name: "redirectForToken",
-    outputs: [
-      {
-        internalType: "int256",
-        name: "responseCode",
-        type: "int256",
-      },
-      {
-        internalType: "bytes",
-        name: "response",
-        type: "bytes",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "registry",
     outputs: [
@@ -433,36 +746,17 @@ export const lendingPoolAbi = [
         name: "amount",
         type: "int64",
       },
+      {
+        internalType: "address",
+        name: "behalfOf",
+        type: "address",
+      },
     ],
     name: "repay",
     outputs: [
       {
         internalType: "int64",
-        name: "remainingPrincipal",
-        type: "int64",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "int64",
-        name: "amount",
-        type: "int64",
-      },
-      {
-        internalType: "address",
-        name: "farmer",
-        type: "address",
-      },
-    ],
-    name: "repayBehalfOf",
-    outputs: [
-      {
-        internalType: "int64",
-        name: "remainingPrincipal",
+        name: "",
         type: "int64",
       },
     ],
@@ -511,28 +805,14 @@ export const lendingPoolAbi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "supplied",
-    outputs: [
-      {
-        internalType: "int64",
-        name: "",
-        type: "int64",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "int64",
         name: "amount",
         type: "int64",
+      },
+      {
+        internalType: "address",
+        name: "behalfOf",
+        type: "address",
       },
     ],
     name: "supply",
@@ -541,21 +821,16 @@ export const lendingPoolAbi = [
     type: "function",
   },
   {
-    inputs: [
+    inputs: [],
+    name: "symbol",
+    outputs: [
       {
-        internalType: "int64",
-        name: "amount",
-        type: "int64",
-      },
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
+        internalType: "string",
+        name: "",
+        type: "string",
       },
     ],
-    name: "supplyBehalfOf",
-    outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -585,17 +860,20 @@ export const lendingPoolAbi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "totalSupply",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
       {
         internalType: "address",
         name: "to",
@@ -603,16 +881,16 @@ export const lendingPoolAbi = [
       },
       {
         internalType: "uint256",
-        name: "amount",
+        name: "value",
         type: "uint256",
       },
     ],
-    name: "transferFrom",
+    name: "transfer",
     outputs: [
       {
-        internalType: "int64",
-        name: "responseCode",
-        type: "int64",
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
     stateMutability: "nonpayable",
@@ -622,11 +900,6 @@ export const lendingPoolAbi = [
     inputs: [
       {
         internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        internalType: "address",
         name: "from",
         type: "address",
       },
@@ -637,16 +910,16 @@ export const lendingPoolAbi = [
       },
       {
         internalType: "uint256",
-        name: "serialNumber",
+        name: "value",
         type: "uint256",
       },
     ],
-    name: "transferFromNFT",
+    name: "transferFrom",
     outputs: [
       {
-        internalType: "int64",
-        name: "responseCode",
-        type: "int64",
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
     stateMutability: "nonpayable",

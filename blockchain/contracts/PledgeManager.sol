@@ -4,7 +4,6 @@ pragma solidity ^0.8.28;
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import {PledgeManagerInterface} from "./interfaces/PledgeManagerInterface.sol";
 
 /// @title PledgeManager (per-farmer, LP-token based)
@@ -13,38 +12,49 @@ contract PledgeManager is
     PledgeManagerInterface,
     ReentrancyGuard,
     Ownable,
-    ERC20,
-    ERC20Burnable
+    ERC20
 {
-    address public farmer;
-    address public pool;
+    error ZeroAddress();
+    error ZeroAmount();
+    error ActivePledge();
+    error TransferFailed();
+    error NoCollateral();
+    error NotFarmer();
+    error InsufficientBalance();
+
+    address public immutable farmer;
+    address public immutable pool;
     bool public active = true;
 
     constructor(
         address _farmer,
         address _pool
     ) Ownable(_pool) ERC20("Farmer Pledge LP", "fLP") {
-        require(_farmer != address(0), "zero-farmer");
+        if (_farmer == address(0) || _pool == address(0)) revert ZeroAddress();
+
         farmer = _farmer;
         pool = _pool;
     }
 
     /// @notice Pledge HBAR -> receive LP tokens
-    function pledge() external payable nonReentrant {
-        require(msg.value > 0, "pledge-zero");
-        _mint(msg.sender, msg.value);
-        emit Pledged(msg.sender, msg.value);
+    function pledge(address behalfOf) external payable nonReentrant {
+        if (msg.value == 0) revert ZeroAmount();
+        if (behalfOf == address(0)) revert ZeroAddress();
+
+        _mint(behalfOf, msg.value);
+        emit Pledged(behalfOf, msg.value);
     }
 
-    /// @notice Withdraw pledge
+    /// @notice Withdraw pledge - only allowed when pledge is inactive
     function withdraw(uint256 amount) external nonReentrant {
-        require(!active, "active-pledge");
-        require(amount > 0, "no-request");
+        if (active) revert ActivePledge();
+        if (amount == 0) revert ZeroAmount();
+        if (balanceOf(msg.sender) < amount) revert InsufficientBalance();
 
         _burn(msg.sender, amount);
 
-        (bool sent, ) = msg.sender.call{value: amount}("");
-        require(sent, "transfer-failed");
+        (bool success, ) = msg.sender.call{value: amount}("");
+        if (!success) revert TransferFailed();
 
         emit Withdrawn(msg.sender, amount);
     }
@@ -52,20 +62,46 @@ contract PledgeManager is
     /// @notice Called by LendingPool after verifying unhealthy LTV
     /// @param liquidator The address that triggered liquidation
     function liquidate(address liquidator) external nonReentrant onlyOwner {
-        uint256 bal = address(this).balance;
-        require(bal > 0, "no-collateral");
+        uint256 balance = address(this).balance;
+        if (balance == 0) revert NoCollateral();
 
-        // Burn all LP supply
+        if (liquidator == address(0)) revert ZeroAddress();
+
         _burn(address(this), totalSupply());
 
-        (bool sent, ) = payable(liquidator).call{value: bal}("");
-        require(sent, "transfer-failed");
+        // Transfer all collateral to liquidator
+        (bool success, ) = payable(liquidator).call{value: balance}("");
+        if (!success) revert TransferFailed();
 
-        emit Liquidated(farmer, liquidator, bal);
+        // Deactivate the pledge after liquidation
+        active = false;
+
+        emit Liquidated(farmer, liquidator, balance);
     }
 
+    /// @notice Emergency withdrawal for farmer (only when no active loans)
+    function emergencyWithdraw() external nonReentrant {
+        if (msg.sender != farmer) revert NotFarmer();
+        if (active) revert ActivePledge();
+
+        uint256 farmerBalance = balanceOf(farmer);
+        if (farmerBalance == 0) revert ZeroAmount();
+
+        uint256 collateralShare = (address(this).balance * farmerBalance) /
+            totalSupply();
+
+        _burn(farmer, farmerBalance);
+
+        (bool success, ) = farmer.call{value: collateralShare}("");
+        if (!success) revert TransferFailed();
+
+        emit Withdrawn(farmer, collateralShare);
+    }
+
+    /// @notice Set active status (only pool can call this)
     function setActive(bool _active) external onlyOwner {
         active = _active;
+        emit ActiveStatusChanged(_active);
     }
 
     receive() external payable {}
