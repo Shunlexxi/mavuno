@@ -5,7 +5,6 @@ import { ApiResponse, CreateFarmerRequest, FarmerFilters } from "@/types/api";
 // Mock data (to be removed when backend is integrated)
 const mockFarmers: Farmer[] = [
   {
-    id: "1",
     name: "Sarah Okafor",
     email: "sarah.okafor@email.com",
     avatar: "/api/placeholder/150/150",
@@ -20,7 +19,6 @@ const mockFarmers: Farmer[] = [
     createdAt: "2024-01-15",
   },
   {
-    id: "2",
     name: "John Adebayo",
     email: "john.adebayo@email.com",
     avatar: "/api/placeholder/150/150",
@@ -35,7 +33,6 @@ const mockFarmers: Farmer[] = [
     createdAt: "2024-02-10",
   },
   {
-    id: "3",
     name: "Fatima Hassan",
     email: "fatima.hassan@email.com",
     avatar: "/api/placeholder/150/150",
@@ -110,14 +107,14 @@ export class FarmersService {
   }
 
   // Get single farmer by ID
-  async getFarmerById(id: string): Promise<ApiResponse<Farmer | null>> {
+  async getFarmerById(address: string): Promise<ApiResponse<Farmer | null>> {
     try {
       // Simulate network delay
       await new Promise((resolve) =>
         setTimeout(resolve, 200 + Math.random() * 300)
       );
 
-      const farmer = mockFarmers.find((f) => f.id === id) || null;
+      const farmer = mockFarmers.find((f) => f.address === address) || null;
 
       return {
         data: farmer,
@@ -144,7 +141,6 @@ export class FarmersService {
       );
 
       const newFarmer: Farmer = {
-        id: Date.now().toString(), // In real implementation, this would come from backend
         ...farmerData,
         avatar: "/api/placeholder/150/150",
         verified: false, // New farmers start unverified
@@ -168,7 +164,7 @@ export class FarmersService {
 
   // Update farmer profile
   async updateFarmer(
-    id: string,
+    address: string,
     updates: Partial<Farmer>
   ): Promise<ApiResponse<Farmer>> {
     try {
@@ -177,7 +173,7 @@ export class FarmersService {
         setTimeout(resolve, 400 + Math.random() * 400)
       );
 
-      const farmerIndex = mockFarmers.findIndex((f) => f.id === id);
+      const farmerIndex = mockFarmers.findIndex((f) => f.address === address);
       if (farmerIndex === -1) {
         return {
           data: {} as Farmer,
