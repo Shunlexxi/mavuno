@@ -3,6 +3,10 @@ pragma solidity ^0.8.28;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+
 import {HederaTokenService} from "./hts-precompile/HederaTokenService.sol";
 import {FiatInterface} from "./interfaces/FiatInterface.sol";
 import {OracleInterface} from "./interfaces/OracleInterface.sol";
@@ -10,19 +14,24 @@ import {FarmerRegistryInterface} from "./interfaces/FarmerRegistryInterface.sol"
 import {PledgeManagerInterface} from "./interfaces/PledgeManagerInterface.sol";
 import {HederaResponseCodes} from "./hts-precompile/HederaResponseCodes.sol";
 
-/// @title LendingPool
+/// @title LendingPool (LP-tokenized)
 /// @notice Single pool for a fiat HTS token (NGN, CEDI, RAND). Supplies/borrows are in the fiat token (HTS ERC20-wrapped).
 /// Collateral is pledged in native HBAR (via PledgeManager). Oracle converts between HBAR wei and fiat smallest units.
-contract LendingPool is ReentrancyGuard, Ownable, HederaTokenService {
+contract LendingPool is
+    ReentrancyGuard,
+    Ownable,
+    HederaTokenService,
+    ERC20,
+    ERC20Burnable
+{
+    using Math for uint256;
+
     OracleInterface public oracle;
     FiatInterface public fiat; // HTS wrapped contract representing fiat
     FarmerRegistryInterface public registry;
 
     int64 public totalSupplied; // tokens supplied by LPs (in token smallest unit)
     int64 public totalBorrowed; // tokens currently lent out (sum of principals)
-
-    // LP -> supplied token amount
-    mapping(address => int64) public supplied;
 
     // Borrower single position (no multiple loan structs)
     // principal is in fiat smallest units
@@ -36,8 +45,9 @@ contract LendingPool is ReentrancyGuard, Ownable, HederaTokenService {
     /// @dev pool interest rate applied to farmer positions (bps per year)
     int64 public borrowRateBp = 800; // 8.00% p.a.
 
-    event Supplied(address indexed lp, int64 amount);
-    event WithdrawnSupply(address indexed lp, int64 amount);
+    event Supplied(address indexed lp, int64 amount, uint256 lpMinted);
+    event WithdrawnSupply(address indexed lp, int64 amount, uint256 lpBurned);
+
     event Borrowed(address indexed farmer, int64 amount, int64 newPrincipal);
     event Repaid(
         address indexed farmer,
@@ -49,12 +59,17 @@ contract LendingPool is ReentrancyGuard, Ownable, HederaTokenService {
     int64 public constant MAX_BPS = 10_000;
     int64 public constant LIQUIDATION_BPS = 9_600; // 96.00%
 
+    /// @param _controller forwarded to Ownable constructor (owner)
+    /// @param _oracle oracle address
+    /// @param _fiat fiat HTS wrapper address
+    /// @param _registry farmer registry
+    /// Note: ERC20 LP token name/symbol are provided here; change as desired.
     constructor(
         address _controller,
         address _oracle,
         address _fiat,
         address _registry
-    ) Ownable(_controller) {
+    ) Ownable(_controller) ERC20("LendingPool LP", "pLP") {
         require(_oracle != address(0), "zero-oracle");
         require(_fiat != address(0), "zero-fiat");
         require(_registry != address(0), "zero-registry");
@@ -63,46 +78,72 @@ contract LendingPool is ReentrancyGuard, Ownable, HederaTokenService {
         fiat = FiatInterface(_fiat);
         registry = FarmerRegistryInterface(_registry);
 
+        // associate the pool contract with the underlying fiat HTS token if needed
         associateToken(address(this), fiat.underlying());
     }
 
     /* ========== LP (liquidity provider) functions ========== */
 
     /// @notice LP supplies fiat HTS tokens to the pool. Caller must `approve` the pool beforehand.
-    function supply(int64 amount) external nonReentrant {
+    function supply(int64 amount, address behalfOf) external nonReentrant {
         require(amount > 0, "supply-zero");
-        // transfer tokens into pool
-        transferToken(fiat.underlying(), msg.sender, address(this), amount);
-        supplied[msg.sender] += amount;
-        totalSupplied += amount;
-        emit Supplied(msg.sender, amount);
-    }
+        require(behalfOf != address(0), "zero-account");
 
-    /// @notice LP supplies fiat HTS tokens to the pool on behalf of another account. Caller must `approve` the pool beforehand.
-    function supplyBehalfOf(
-        int64 amount,
-        address account
-    ) external nonReentrant {
-        require(amount > 0, "supply-zero");
+        uint256 lpTotalSupply = totalSupply();
+        uint256 underlyingPool = uint256(uint64(totalSupplied)); // pre-transfer
+
         // transfer tokens into pool
         transferToken(fiat.underlying(), msg.sender, address(this), amount);
-        supplied[account] += amount;
+
+        uint256 minted;
+        if (underlyingPool == 0 || lpTotalSupply == 0) {
+            minted = uint256(uint64(amount));
+        } else {
+            minted = uint256(uint64(amount)).mulDiv(
+                lpTotalSupply,
+                underlyingPool
+            );
+            require(minted != 0, "zero-lp-minted");
+        }
+
         totalSupplied += amount;
-        emit Supplied(account, amount);
+        _mint(behalfOf, minted);
+
+        emit Supplied(behalfOf, amount, minted);
     }
 
     /// @notice LP withdraws supplied fiat tokens if pool has free liquidity (not lent out).
+    /// `amount` is requested underlying fiat smallest-units amount to withdraw.
     function withdrawSupply(int64 amount) external nonReentrant {
-        require(supplied[msg.sender] >= amount, "insufficient-supplied");
+        require(amount > 0, "withdraw-zero");
+
+        // freeLiquidity check in underlying units
         int64 freeLiquidity = totalSupplied - totalBorrowed;
         require(freeLiquidity >= amount, "insufficient-free-liquidity");
 
-        supplied[msg.sender] -= amount;
+        uint256 lpTotalSupply = totalSupply();
+        require(lpTotalSupply > 0, "no-lp-supply");
+
+        // compute LP tokens to burn proportionally: lpToBurn = amount * lpTotalSupply / totalSupplied
+        // cast safely
+        uint256 numerator = uint256(uint64(amount)) * lpTotalSupply;
+        uint256 denominator = uint256(uint64(totalSupplied));
+        require(denominator > 0, "zero-total-supplied");
+        uint256 lpToBurn = numerator / denominator;
+        require(lpToBurn != 0, "zero-lp-burn");
+
+        // ensure sender has enough LP tokens
+        require(balanceOf(msg.sender) >= lpToBurn, "insufficient-lp-balance");
+
+        // burn LP tokens from sender (internal burn — no allowance needed)
+        _burn(msg.sender, lpToBurn);
+
         totalSupplied -= amount;
 
+        // transfer underlying fiat tokens back to LP
         transferToken(fiat.underlying(), address(this), msg.sender, amount);
 
-        emit WithdrawnSupply(msg.sender, amount);
+        emit WithdrawnSupply(msg.sender, amount, lpToBurn);
     }
 
     /* ========== Borrowing / Repayment (farmer flows) ========== */
@@ -124,12 +165,18 @@ contract LendingPool is ReentrancyGuard, Ownable, HederaTokenService {
         return int64(uint64(interest));
     }
 
+    function accruedInterest(
+        int64 principal,
+        uint256 fromTimestamp
+    ) external view returns (int64) {
+        return _accruedInterest(principal, fromTimestamp);
+    }
+
     /// @notice Compute outstanding (principal + accrued interest) for farmer.
     function outstanding(address farmer) public view returns (int64) {
         int64 principal = farmerPrincipal[farmer];
         if (principal <= 0) return int64(0);
         int64 interest = _accruedInterest(principal, farmerBorrowedAt[farmer]);
-        // safe to add because interest is derived from principal and limited
         return principal + interest;
     }
 
@@ -159,13 +206,18 @@ contract LendingPool is ReentrancyGuard, Ownable, HederaTokenService {
         require(fiatPerHbar > 0, "oracle-zero");
 
         // pledgedFiat = pledged * fiatPerHbar
-        uint256 pledgedFiat = (totalPledged * fiatPerHbar) /
-            uint256(uint64(MAX_BPS));
+        uint256 pledgedFiat = totalPledged.mulDiv(
+            fiatPerHbar,
+            uint256(uint64(MAX_BPS))
+        );
+
         require(pledgedFiat > 0, "pledged-fiat-zero");
 
         // max borrow allowed by LTV
-        uint256 maxBorrowable = (pledgedFiat * uint256(uint64(loanToValueBp))) /
-            uint256(uint64(MAX_BPS));
+        uint256 maxBorrowable = pledgedFiat.mulDiv(
+            uint256(uint64(loanToValueBp)),
+            uint256(uint64(MAX_BPS))
+        );
 
         // outstanding owed by farmer (principal + accrued interest)
         int64 out = outstanding(msg.sender);
@@ -189,7 +241,6 @@ contract LendingPool is ReentrancyGuard, Ownable, HederaTokenService {
         );
 
         // new principal = previous principal + accrued + amount
-        // cast to uint256 for arithmetic then back to int64
         uint256 newPrincipalU256 = uint256(uint64(prevPrincipal)) +
             uint256(uint64(accrued)) +
             uint256(uint64(amount));
@@ -210,19 +261,19 @@ contract LendingPool is ReentrancyGuard, Ownable, HederaTokenService {
     }
 
     /// @notice Repay loan in fiat tokens. Borrower must `approve` the pool and call this with `amount` to repay.
-    /// Partial repay allowed. Payments are applied to interest first, then principal.
     function repay(
-        int64 amount
+        int64 amount,
+        address behalfOf
     ) external nonReentrant returns (int64 remainingPrincipal) {
         require(amount > 0, "zero-amount");
 
-        int64 principal = farmerPrincipal[msg.sender];
+        int64 principal = farmerPrincipal[behalfOf];
         require(principal > 0, "no-outstanding-loan");
 
         // compute accrued interest since farmerBorrowedAt
         int64 interest = _accruedInterest(
             principal,
-            farmerBorrowedAt[msg.sender]
+            farmerBorrowedAt[behalfOf]
         );
 
         // transfer tokens from caller to pool (must approve)
@@ -239,11 +290,11 @@ contract LendingPool is ReentrancyGuard, Ownable, HederaTokenService {
             require(outstandingAfter <= type(uint64).max, "overflow-after-pay");
             int64 newPrincipal = int64(uint64(outstandingAfter));
 
-            farmerPrincipal[msg.sender] = newPrincipal;
-            farmerBorrowedAt[msg.sender] = block.timestamp;
+            farmerPrincipal[behalfOf] = newPrincipal;
+            farmerBorrowedAt[behalfOf] = block.timestamp;
 
             // totalBorrowed should be reduced by the principal portion paid
-            emit Repaid(msg.sender, amount, newPrincipal, int64(uint64(pay)));
+            emit Repaid(behalfOf, amount, newPrincipal, int64(uint64(pay)));
             return newPrincipal;
         } else {
             // pay covers full interest and some principal
@@ -254,9 +305,9 @@ contract LendingPool is ReentrancyGuard, Ownable, HederaTokenService {
                 // full repay
                 // reduce totalBorrowed by principal
                 totalBorrowed -= principal;
-                farmerPrincipal[msg.sender] = int64(0);
-                farmerBorrowedAt[msg.sender] = 0;
-                emit Repaid(msg.sender, amount, 0, interest);
+                farmerPrincipal[behalfOf] = int64(0);
+                farmerBorrowedAt[behalfOf] = 0;
+                emit Repaid(behalfOf, amount, 0, interest);
                 return 0;
             } else {
                 // partial principal repay
@@ -266,82 +317,14 @@ contract LendingPool is ReentrancyGuard, Ownable, HederaTokenService {
                     "overflow-new-principal"
                 );
                 int64 newPrincipal = int64(uint64(newPrincipalU));
-                farmerPrincipal[msg.sender] = newPrincipal;
-                farmerBorrowedAt[msg.sender] = block.timestamp;
+                farmerPrincipal[behalfOf] = newPrincipal;
+                farmerBorrowedAt[behalfOf] = block.timestamp;
 
                 // reduce totalBorrowed by principal portion repaid
-                // principal portion repaid = payLeft
                 int64 principalRepaid = int64(uint64(payLeft));
                 totalBorrowed -= principalRepaid;
 
-                emit Repaid(msg.sender, amount, newPrincipal, interest);
-                return newPrincipal;
-            }
-        }
-    }
-
-    function repayBehalfOf(
-        int64 amount,
-        address farmer
-    ) external nonReentrant returns (int64 remainingPrincipal) {
-        require(amount > 0, "zero-amount");
-
-        int64 principal = farmerPrincipal[farmer];
-        require(principal > 0, "no-outstanding-loan");
-
-        // compute accrued interest since farmerBorrowedAt
-        int64 interest = _accruedInterest(principal, farmerBorrowedAt[farmer]);
-
-        // transfer tokens from caller to pool (must approve)
-        transferToken(fiat.underlying(), msg.sender, address(this), amount);
-
-        uint256 pay = uint256(uint64(amount));
-
-        // First, pay interest
-        if (pay <= uint256(uint64(interest))) {
-            // payment covers part or all of interest; principal unchanged, update borrowedAt to now (accrual restarts)
-            uint256 outstandingBefore = uint256(uint64(principal)) +
-                uint256(uint64(interest));
-            uint256 outstandingAfter = outstandingBefore - pay;
-            require(outstandingAfter <= type(uint64).max, "overflow-after-pay");
-            int64 newPrincipal = int64(uint64(outstandingAfter));
-
-            farmerPrincipal[farmer] = newPrincipal;
-            farmerBorrowedAt[farmer] = block.timestamp;
-
-            // totalBorrowed should be reduced by the principal portion paid
-            emit Repaid(farmer, amount, newPrincipal, int64(uint64(pay)));
-            return newPrincipal;
-        } else {
-            // pay covers full interest and some principal
-            uint256 payLeft = pay - uint256(uint64(interest)); // amount to reduce principal
-            // convert principal to uint256
-            uint256 principalU = uint256(uint64(principal));
-            if (payLeft >= principalU) {
-                // full repay
-                // reduce totalBorrowed by principal
-                totalBorrowed -= principal;
-                farmerPrincipal[farmer] = int64(0);
-                farmerBorrowedAt[farmer] = 0;
-                emit Repaid(farmer, amount, 0, interest);
-                return 0;
-            } else {
-                // partial principal repay
-                uint256 newPrincipalU = principalU - payLeft;
-                require(
-                    newPrincipalU <= type(uint64).max,
-                    "overflow-new-principal"
-                );
-                int64 newPrincipal = int64(uint64(newPrincipalU));
-                farmerPrincipal[farmer] = newPrincipal;
-                farmerBorrowedAt[farmer] = block.timestamp;
-
-                // reduce totalBorrowed by principal portion repaid
-                // principal portion repaid = payLeft
-                int64 principalRepaid = int64(uint64(payLeft));
-                totalBorrowed -= principalRepaid;
-
-                emit Repaid(farmer, amount, newPrincipal, interest);
+                emit Repaid(behalfOf, amount, newPrincipal, interest);
                 return newPrincipal;
             }
         }
@@ -349,26 +332,40 @@ contract LendingPool is ReentrancyGuard, Ownable, HederaTokenService {
 
     function _computeLtv(address farmer) internal view returns (uint256) {
         int64 debt = outstanding(farmer);
-        if (debt <= 0) return 0;
+        if (debt <= 0) return type(uint256).max;
 
         address pledgeManager = registry.getManager(farmer);
         if (pledgeManager == address(0)) return 0;
 
-        uint256 pledgedHbar = PledgeManagerInterface(pledgeManager)
+        uint256 totalPledged = PledgeManagerInterface(pledgeManager)
             .totalSupply();
-        if (pledgedHbar == 0) return type(uint256).max; // no collateral → infinite LTV
+        if (totalPledged == 0) return type(uint256).max; // no collateral → infinite LTV
 
         uint256 fiatPerHbar = oracle.fiatPerHbar(address(fiat));
         require(fiatPerHbar > 0, "oracle-zero");
 
-        uint256 collateralValueFiat = pledgedHbar * fiatPerHbar;
+        uint256 collateralValueFiat = totalPledged.mulDiv(
+            fiatPerHbar,
+            uint256(uint64(MAX_BPS))
+        );
 
-        return uint256((uint64(debt) * uint64(MAX_BPS))) / collateralValueFiat;
+        return
+            uint256(uint64(debt)).mulDiv(
+                uint256(uint64(MAX_BPS)),
+                collateralValueFiat
+            );
+    }
+
+    function computeLtv(address farmer) public view returns (uint256) {
+        return _computeLtv(farmer);
     }
 
     function checkAndLiquidate(address farmer) external nonReentrant {
         uint256 ltvBps = _computeLtv(farmer);
-        require(ltvBps >= 9_600, "ltv-below-threshold");
+        require(
+            ltvBps >= uint256(uint64(LIQUIDATION_BPS)),
+            "ltv-below-threshold"
+        );
 
         int64 debt = outstanding(farmer);
         require(debt > 0, "no-debt");
@@ -376,6 +373,7 @@ contract LendingPool is ReentrancyGuard, Ownable, HederaTokenService {
         address pledgeManager = registry.getManager(farmer);
         require(pledgeManager != address(0), "invalid-pledge-manager");
 
+        // transfer fiat tokens from liquidator into pool to cover the debt
         transferToken(fiat.underlying(), msg.sender, address(this), debt);
 
         farmerPrincipal[farmer] = 0;
@@ -411,8 +409,6 @@ contract LendingPool is ReentrancyGuard, Ownable, HederaTokenService {
     function idleLiquidity() external view returns (int64) {
         return totalSupplied - totalBorrowed;
     }
-
-    /* ========== Safety / receive ========== */
 
     // allow contract to receive native HBAR if needed (e.g., future features)
     receive() external payable {}

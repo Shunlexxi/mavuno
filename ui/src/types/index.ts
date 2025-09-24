@@ -14,8 +14,8 @@ export interface Farmer extends User {
   cropType: string;
   description: string;
   verified: boolean;
-  totalLoans: number;
-  totalRepaid: number;
+  totalLoans: bigint;
+  totalRepaid: bigint;
 }
 
 export interface TimelinePost {
@@ -36,7 +36,7 @@ export interface Pledge {
   pledgerId: string;
   farmerId: string;
   farmer: Farmer;
-  amount: number;
+  amount: bigint;
   currency: "HBAR";
   status: "active" | "withdrawn" | "locked";
   createdAt: string;
@@ -46,11 +46,10 @@ export interface Pledge {
 }
 
 export interface Pool {
-  id: string;
   address: Hex;
   currency: "NGN" | "CEDI" | "RAND";
-  totalLiquidity: number;
-  totalBorrowed: number;
+  totalLiquidity: bigint;
+  totalBorrowed: bigint;
   supplyAPY: number;
   borrowAPY: number;
   utilizationRate: number;
@@ -58,16 +57,15 @@ export interface Pool {
 
 export interface PoolPosition {
   id: string;
-  poolId: string;
-  userId: string;
-  type: "supply" | "borrow";
+  poolAddress: string;
+  account: string;
   amount: number;
   earnedInterest?: number;
   createdAt: string;
 }
 
 export interface PledgeStats {
-  totalPledged: number;
-  activePledges: number;
-  lockedPledges: number;
+  totalPledged: bigint;
+  activePledges: bigint;
+  lockedPledges: bigint;
 }
