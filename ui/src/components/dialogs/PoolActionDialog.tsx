@@ -15,9 +15,14 @@ import { Wallet, TrendingUp, AlertTriangle, DollarSign } from "lucide-react";
 import { Pool } from "@/types";
 import { toast } from "sonner";
 import Paystack from "@paystack/inline-js";
-import { parseUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 import { lendingPoolAbi } from "@/abis/lendingPool";
-import { adminClient, Contracts, publicClient } from "@/utils/constants";
+import {
+  adminClient,
+  Contracts,
+  MAX_BPS_POW,
+  publicClient,
+} from "@/utils/constants";
 import { hederaTestnet } from "viem/chains";
 import { useAccount } from "wagmi";
 import { fiatAbi } from "@/abis/fiat";
@@ -228,7 +233,10 @@ export default function PoolActionDialog({
   const calculateInterest = () => {
     if (!amount) return "0";
     const rate = action === "supply" ? pool.supplyAPY : pool.borrowAPY;
-    return ((parseFloat(amount) * rate) / 100).toFixed(2);
+    return (
+      (parseFloat(amount) * Number(formatUnits(rate, MAX_BPS_POW))) /
+      100
+    ).toFixed(2);
   };
 
   return (

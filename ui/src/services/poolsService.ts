@@ -1,8 +1,8 @@
 import { lendingPoolAbi } from "@/abis/lendingPool";
 import { Pool, PoolPosition } from "@/types";
-import { ApiResponse, PoolActionRequest } from "@/types/api";
+import { ApiResponse } from "@/types/api";
 import { Contracts, publicClient } from "@/utils/constants";
-import { Hex } from "viem";
+import { formatUnits, Hex } from "viem";
 
 export class PoolsService {
   private async loadPool(address: Hex): Promise<Pool> {
@@ -19,29 +19,58 @@ export class PoolsService {
         currency = "NGN";
     }
 
-    const totalLiquidity = (await publicClient.readContract({
-      abi: lendingPoolAbi,
-      address,
-      functionName: "totalSupplied",
-      authorizationList: undefined,
-    })) as bigint;
+    try {
+      const totalLiquidity = (await publicClient.readContract({
+        abi: lendingPoolAbi,
+        address,
+        functionName: "totalSupplied",
+        authorizationList: undefined,
+      })) as bigint;
 
-    const totalBorrowed = (await publicClient.readContract({
-      abi: lendingPoolAbi,
-      address,
-      functionName: "totalSupplied",
-      authorizationList: undefined,
-    })) as bigint;
+      const totalBorrowed = (await publicClient.readContract({
+        abi: lendingPoolAbi,
+        address,
+        functionName: "totalBorrowed",
+        authorizationList: undefined,
+      })) as bigint;
 
-    return {
-      address,
-      currency,
-      totalLiquidity,
-      totalBorrowed,
-      supplyAPY: 0,
-      borrowAPY: 0,
-      utilizationRate: 0,
-    };
+      const borrowAPY = (await publicClient.readContract({
+        abi: lendingPoolAbi,
+        address,
+        functionName: "borrowRateBp",
+        authorizationList: undefined,
+      })) as bigint;
+
+      const utilizationRate = Number(totalBorrowed / totalLiquidity);
+      const supplyAPY = BigInt((Number(borrowAPY) * utilizationRate) / 100);
+
+      return {
+        address,
+        currency,
+        totalLiquidity,
+        totalBorrowed,
+        supplyAPY,
+        borrowAPY,
+        utilizationRate,
+      };
+    } catch (error) {
+      return {
+        address,
+        currency,
+        totalLiquidity: 0n,
+        totalBorrowed: 0n,
+        supplyAPY: 0n,
+        borrowAPY: 0n,
+        utilizationRate: 0,
+      };
+    }
+  }
+
+  private async loadPosition(address, account): Promise<PoolPosition> {
+    try {
+    } catch (error) {
+      return {};
+    }
   }
 
   async getPools(): Promise<ApiResponse<Pool[]>> {

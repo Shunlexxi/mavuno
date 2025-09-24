@@ -196,6 +196,10 @@ contract LendingPool is
             address(this) == PledgeManagerInterface(pledgeManager).pool(),
             "unpledged-pool"
         );
+        require(
+            PledgeManagerInterface(pledgeManager).active(),
+            "inactive-pledge"
+        );
 
         // Get total pledged HBAR wei for farmer
         uint256 totalPledged = PledgeManagerInterface(pledgeManager)
@@ -383,6 +387,23 @@ contract LendingPool is
         PledgeManagerInterface(pledgeManager).liquidate(msg.sender);
 
         emit Repaid(farmer, debt, 0, 0);
+    }
+
+    function activatePledge() external {
+        address pledgeManager = registry.getManager(msg.sender);
+        require(pledgeManager != address(0), "invalid-pledge-manager");
+
+        PledgeManagerInterface(pledgeManager).setActive(true);
+    }
+
+    function deactivatePledge() external {
+        int64 debt = outstanding(msg.sender);
+        require(debt == 0, "in-debt");
+
+        address pledgeManager = registry.getManager(msg.sender);
+        require(pledgeManager != address(0), "invalid-pledge-manager");
+
+        PledgeManagerInterface(pledgeManager).setActive(false);
     }
 
     /* ========== Admin / Gov ========== */

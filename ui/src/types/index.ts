@@ -1,21 +1,20 @@
 import { Hex } from "viem";
 
 export interface User {
+  address: string;
   name: string;
   email: string;
   avatar?: string;
-  address?: string;
-  createdAt: string;
-}
-
-export interface Farmer extends User {
   location: string;
   farmSize: string;
   cropType: string;
   description: string;
   verified: boolean;
-  totalLoans: bigint;
-  totalRepaid: bigint;
+  createdAt: string;
+}
+
+export interface Farmer extends User {
+  pledgeManager: string;
 }
 
 export interface TimelinePost {
@@ -50,8 +49,8 @@ export interface Pool {
   currency: "NGN" | "CEDI" | "RAND";
   totalLiquidity: bigint;
   totalBorrowed: bigint;
-  supplyAPY: number;
-  borrowAPY: number;
+  supplyAPY: bigint;
+  borrowAPY: bigint;
   utilizationRate: number;
 }
 
@@ -59,9 +58,13 @@ export interface PoolPosition {
   id: string;
   poolAddress: string;
   account: string;
-  amount: number;
-  earnedInterest?: number;
-  createdAt: string;
+  lp: bigint;
+  borrow: bigint;
+  healthFactor: bigint;
+  totalBorrowed: bigint;
+  totalRepaid: bigint;
+  totalPledge: bigint;
+  canUsePledge: boolean;
 }
 
 export interface PledgeStats {

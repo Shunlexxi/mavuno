@@ -18,9 +18,7 @@ contract PledgeManager is
 {
     address public farmer;
     address public pool;
-    uint256 public withdrawalDelaySeconds = 7 days;
-
-    mapping(address => WithdrawalRequest) public withdrawalRequests;
+    bool public active = true;
 
     constructor(
         address _farmer,
@@ -38,31 +36,10 @@ contract PledgeManager is
         emit Pledged(msg.sender, msg.value);
     }
 
-    /// @notice Start withdrawal (burn LP after delay)
-    function requestWithdrawal(uint256 amount) external {
-        require(balanceOf(msg.sender) >= amount, "not-enough-LP");
-        WithdrawalRequest storage req = withdrawalRequests[msg.sender];
-        req.amount = amount;
-        req.unlockTimestamp = block.timestamp + withdrawalDelaySeconds;
-        emit WithdrawalRequested(msg.sender, amount, req.unlockTimestamp);
-    }
-
-    /// @notice Cancel withdrawal request
-    function cancelWithdrawal() external {
-        WithdrawalRequest storage req = withdrawalRequests[msg.sender];
-        require(req.amount > 0, "no-request");
-        delete withdrawalRequests[msg.sender];
-        emit WithdrawalCancelled(msg.sender);
-    }
-
-    /// @notice Finalize withdrawal after unlock
-    function finalizeWithdraw() external nonReentrant {
-        WithdrawalRequest storage req = withdrawalRequests[msg.sender];
-        require(req.amount > 0, "no-request");
-        require(block.timestamp >= req.unlockTimestamp, "still-locked");
-
-        uint256 amount = req.amount;
-        delete withdrawalRequests[msg.sender];
+    /// @notice Withdraw pledge
+    function withdraw(uint256 amount) external nonReentrant {
+        require(!active, "active-pledge");
+        require(amount > 0, "no-request");
 
         _burn(msg.sender, amount);
 
@@ -87,8 +64,8 @@ contract PledgeManager is
         emit Liquidated(farmer, liquidator, bal);
     }
 
-    function setWithdrawalDelay(uint256 sec) external onlyOwner {
-        withdrawalDelaySeconds = sec;
+    function setActive(bool _active) external onlyOwner {
+        active = _active;
     }
 
     receive() external payable {}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Pool, PoolPosition } from "@/types";
 import { poolsService } from "@/services/poolsService";
-import { PoolActionRequest } from "@/types/api";
+import { Hex } from "viem";
 
 interface UsePoolsState {
   pools: Pool[];
@@ -11,11 +11,8 @@ interface UsePoolsState {
 
 interface UsePoolsReturn extends UsePoolsState {
   refetch: () => Promise<void>;
-  performPoolAction: (
-    request: PoolActionRequest
-  ) => Promise<PoolPosition | null>;
   generateChartData: (
-    poolId: string,
+    supplyApy: number,
     days?: number
   ) => { day: number; apy: number }[];
 }
@@ -56,35 +53,12 @@ export function usePools(): UsePoolsReturn {
     }
   }, []);
 
-  const performPoolAction = useCallback(
-    async (request: PoolActionRequest): Promise<PoolPosition | null> => {
-      try {
-        const response = await poolsService.performPoolAction(request);
-
-        if (response.success) {
-          // Refresh pools to get updated stats
-          await fetchPools();
-          return response.data;
-        } else {
-          setState((prev) => ({
-            ...prev,
-            error: response.message || "Failed to perform action",
-          }));
-          return null;
-        }
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Failed to perform action";
-        setState((prev) => ({ ...prev, error: errorMessage }));
-        return null;
-      }
+  const generateChartData = useCallback(
+    (supplyApy: number, days: number = 30) => {
+      return poolsService.generatePoolChartData(supplyApy, days);
     },
-    [fetchPools]
+    []
   );
-
-  const generateChartData = useCallback((poolId: string, days: number = 30) => {
-    return poolsService.generatePoolChartData(poolId, days);
-  }, []);
 
   useEffect(() => {
     fetchPools();
@@ -93,7 +67,6 @@ export function usePools(): UsePoolsReturn {
   return {
     ...state,
     refetch: fetchPools,
-    performPoolAction,
     generateChartData,
   };
 }
@@ -108,7 +81,7 @@ interface UsePoolReturn extends UsePoolState {
   refetch: () => Promise<void>;
 }
 
-export function usePool(id: string): UsePoolReturn {
+export function usePool(address: Hex): UsePoolReturn {
   const [state, setState] = useState<UsePoolState>({
     pool: null,
     loading: true,
@@ -116,12 +89,12 @@ export function usePool(id: string): UsePoolReturn {
   });
 
   const fetchPool = useCallback(async () => {
-    if (!id) return;
+    if (!address) return;
 
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
-      const response = await poolsService.getPoolByAddress(id);
+      const response = await poolsService.getPoolByAddress(address);
 
       if (response.success) {
         setState((prev) => ({
@@ -144,7 +117,7 @@ export function usePool(id: string): UsePoolReturn {
         loading: false,
       }));
     }
-  }, [id]);
+  }, [address]);
 
   useEffect(() => {
     fetchPool();
@@ -157,7 +130,7 @@ export function usePool(id: string): UsePoolReturn {
 }
 
 interface UsePoolPositionsState {
-  positions: PoolPosition[];
+  position: PoolPosition | null;
   loading: boolean;
   error: string | null;
 }
@@ -166,25 +139,31 @@ interface UsePoolPositionsReturn extends UsePoolPositionsState {
   refetch: () => Promise<void>;
 }
 
-export function usePoolPositions(userId: string): UsePoolPositionsReturn {
+export function usePoolPositions(
+  address: Hex,
+  account: Hex
+): UsePoolPositionsReturn {
   const [state, setState] = useState<UsePoolPositionsState>({
-    positions: [],
+    position: null,
     loading: true,
     error: null,
   });
 
   const fetchPositions = useCallback(async () => {
-    if (!userId) return;
+    if (!address || !account) return;
 
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
-      const response = await poolsService.getUserPoolPositions(userId);
+      const response = await poolsService.getAccountPoolPosition(
+        address,
+        account
+      );
 
       if (response.success) {
         setState((prev) => ({
           ...prev,
-          positions: response.data,
+          position: response.data,
           loading: false,
         }));
       } else {
@@ -202,7 +181,7 @@ export function usePoolPositions(userId: string): UsePoolPositionsReturn {
         loading: false,
       }));
     }
-  }, [userId]);
+  }, [address, account]);
 
   useEffect(() => {
     fetchPositions();

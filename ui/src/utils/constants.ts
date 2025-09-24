@@ -27,3 +27,6 @@ export const Contracts = {
   CediPoolFiatUnderlying: "0x0000000000000000000000000000000000692666" as Hex,
   RandPoolFiatUnderlying: "0x0000000000000000000000000000000000692669" as Hex,
 };
+
+export const MAX_BPS = 10_000;
+export const MAX_BPS_POW = 2;

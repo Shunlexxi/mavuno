@@ -22,6 +22,8 @@ import communityImage from "@/assets/community-web3.jpg";
 import PoolActionDialog from "../components/dialogs/PoolActionDialog";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { usePools } from "../hooks/usePools";
+import { formatUnits } from "viem";
+import { MAX_BPS, MAX_BPS_POW } from "@/utils/constants";
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -154,7 +156,7 @@ export default function Landing() {
                 ))
               : pools.map((pool) => (
                   <Card
-                    key={pool.id}
+                    key={pool.address}
                     className="hover:shadow-medium transition-all duration-300"
                   >
                     <CardHeader>
@@ -169,7 +171,9 @@ export default function Landing() {
                       {/* Chart */}
                       <div className="h-24 mb-4">
                         <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={generateChartData(pool.id)}>
+                          <LineChart
+                            data={generateChartData(Number(pool.supplyAPY))}
+                          >
                             <Line
                               type="monotone"
                               dataKey="apy"
@@ -208,7 +212,7 @@ export default function Landing() {
                             Supply APY
                           </div>
                           <div className="text-lg font-bold text-green-600">
-                            {pool.supplyAPY}%
+                            {Number(formatUnits(pool.supplyAPY, MAX_BPS_POW))}%
                           </div>
                         </div>
                         <div>
@@ -216,7 +220,7 @@ export default function Landing() {
                             Borrow APY
                           </div>
                           <div className="text-lg font-bold text-orange-600">
-                            {pool.borrowAPY}%
+                            {Number(formatUnits(pool.borrowAPY, MAX_BPS_POW))}%
                           </div>
                         </div>
                       </div>
@@ -227,7 +231,9 @@ export default function Landing() {
                             Total Liquidity
                           </span>
                           <span className="font-medium">
-                            {pool.totalLiquidity.toLocaleString()}{" "}
+                            {Number(
+                              formatUnits(pool.totalLiquidity, 2)
+                            ).toLocaleString()}{" "}
                             {pool.currency}
                           </span>
                         </div>
@@ -236,7 +242,9 @@ export default function Landing() {
                             Total Borrowed
                           </span>
                           <span className="font-medium">
-                            {pool.totalBorrowed.toLocaleString()}{" "}
+                            {Number(
+                              formatUnits(pool.totalBorrowed, 2)
+                            ).toLocaleString()}{" "}
                             {pool.currency}
                           </span>
                         </div>
