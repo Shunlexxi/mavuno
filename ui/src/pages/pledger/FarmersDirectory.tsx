@@ -50,7 +50,7 @@ export default function FarmersDirectory() {
       {/* Farmers Grid */}
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
         {farmers.map((farmer) => (
-          <Card key={farmer.id} className="card-hover">
+          <Card key={farmer.address} className="card-hover">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
@@ -123,7 +123,7 @@ export default function FarmersDirectory() {
                   variant="outline"
                   size="sm"
                   className="flex-1 gap-2"
-                  onClick={() => handleViewFarmer(farmer.id)}
+                  onClick={() => handleViewFarmer(farmer.address)}
                 >
                   <Eye className="w-4 h-4" />
                   View Profile
@@ -131,7 +131,7 @@ export default function FarmersDirectory() {
                 <Button
                   size="sm"
                   className="flex-1 gap-2"
-                  onClick={() => handlePledge(farmer.id)}
+                  onClick={() => handlePledge(farmer.address)}
                 >
                   <Heart className="w-4 h-4" />
                   Pledge Now

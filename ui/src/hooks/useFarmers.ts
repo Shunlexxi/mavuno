@@ -81,16 +81,19 @@ export function useFarmers(filters?: FarmerFilters): UseFarmersReturn {
   );
 
   const updateFarmer = useCallback(
-    async (id: string, updates: Partial<Farmer>): Promise<Farmer | null> => {
+    async (
+      address: string,
+      updates: Partial<Farmer>
+    ): Promise<Farmer | null> => {
       try {
-        const response = await farmersService.updateFarmer(id, updates);
+        const response = await farmersService.updateFarmer(address, updates);
 
         if (response.success) {
           // Update the farmers list locally
           setState((prev) => ({
             ...prev,
             farmers: prev.farmers.map((farmer) =>
-              farmer.id === id ? response.data : farmer
+              farmer.address === address ? response.data : farmer
             ),
           }));
           return response.data;
