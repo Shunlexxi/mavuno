@@ -166,6 +166,7 @@ contract LendingPool is
             totalBorrowed
         );
 
+        totalBorrowed -= amount;
         transferToken(fiat.underlying(), msg.sender, address(this), amount);
         emit Repaid(behalfOf, amount, remainingPrincipal, 0); // interest paid is calculated internally
         return remainingPrincipal;
