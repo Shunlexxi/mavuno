@@ -25,10 +25,12 @@ import { usePools } from "../hooks/usePools";
 import { formatUnits } from "viem";
 import { MAX_BPS_POW } from "@/utils/constants";
 import { useAccount } from "wagmi";
+import { useFarmer } from "@/hooks/useFarmers";
 
 export default function Landing() {
   const navigate = useNavigate();
   const { address } = useAccount();
+  const { farmer } = useFarmer(address);
   const { pools, loading: poolsLoading, generateChartData } = usePools(address);
 
   const features = [
@@ -141,8 +143,7 @@ export default function Landing() {
 
           <div className="grid md:grid-cols-3 gap-6 mb-16">
             {poolsLoading
-              ? // Loading skeleton
-                Array.from({ length: 3 }).map((_, index) => (
+              ? Array.from({ length: 3 }).map((_, index) => (
                   <Card key={index} className="animate-pulse">
                     <CardHeader>
                       <div className="h-6 bg-muted rounded w-3/4"></div>
@@ -156,145 +157,174 @@ export default function Landing() {
                     </CardContent>
                   </Card>
                 ))
-              : pools.map((pool) => (
-                  <Card
-                    key={pool.address}
-                    className="hover:shadow-medium transition-all duration-300"
-                  >
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        <span>{pool.currency} Pool</span>
-                        <div className="text-sm text-muted-foreground">
-                          {pool.utilizationRate.toFixed(1)}% Utilized
+              : pools
+                  .sort((a, b) =>
+                    a.address == farmer?.preferredPool ||
+                    b.address == farmer?.preferredPool
+                      ? 1
+                      : 0
+                  )
+                  .map((pool) => (
+                    <Card
+                      key={pool.address}
+                      className={`hover:shadow-medium transition-all duration-300 ${pool.address == farmer?.preferredPool ? "border-green-300" : ""}`}
+                    >
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <span>{pool.currency} Pool</span>
+                          <div className="text-sm text-muted-foreground">
+                            {pool.utilizationRate.toFixed(1)}% Utilized
+                          </div>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Chart */}
+                        <div className="h-24 mb-4">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={generateChartData(
+                                Number(formatUnits(pool.supplyAPY, MAX_BPS_POW))
+                              )}
+                            >
+                              <Line
+                                type="monotone"
+                                dataKey="apy"
+                                stroke="hsl(var(--primary))"
+                                strokeWidth={2}
+                                dot={false}
+                                fill="url(#gradientFill)"
+                              />
+                              <defs>
+                                <linearGradient
+                                  id="gradientFill"
+                                  x1="0"
+                                  y1="0"
+                                  x2="0"
+                                  y2="1"
+                                >
+                                  <stop
+                                    offset="5%"
+                                    stopColor="hsl(var(--primary))"
+                                    stopOpacity={0.3}
+                                  />
+                                  <stop
+                                    offset="95%"
+                                    stopColor="hsl(var(--primary))"
+                                    stopOpacity={0}
+                                  />
+                                </linearGradient>
+                              </defs>
+                            </LineChart>
+                          </ResponsiveContainer>
                         </div>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {/* Chart */}
-                      <div className="h-24 mb-4">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart
-                            data={generateChartData(Number(pool.supplyAPY))}
-                          >
-                            <Line
-                              type="monotone"
-                              dataKey="apy"
-                              stroke="hsl(var(--primary))"
-                              strokeWidth={2}
-                              dot={false}
-                              fill="url(#gradientFill)"
-                            />
-                            <defs>
-                              <linearGradient
-                                id="gradientFill"
-                                x1="0"
-                                y1="0"
-                                x2="0"
-                                y2="1"
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <div className="text-muted-foreground">
+                              Supply APY
+                            </div>
+                            <div className="text-lg font-bold text-green-600">
+                              {Number(formatUnits(pool.supplyAPY, MAX_BPS_POW))}
+                              %
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">
+                              Borrow APY
+                            </div>
+                            <div className="text-lg font-bold text-orange-600">
+                              {Number(formatUnits(pool.borrowAPY, MAX_BPS_POW))}
+                              %
+                            </div>
+                          </div>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">TVL</span>
+                            <span className="font-medium">
+                              {Number(
+                                formatUnits(pool.totalLiquidity, 2)
+                              ).toLocaleString()}{" "}
+                              {pool.currency}
+                            </span>
+                          </div>
+
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">
+                              Supplied
+                            </span>
+                            <span className="font-medium">
+                              {Number(formatUnits(pool.lp, 2)).toLocaleString()}{" "}
+                              {pool.currency}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">
+                              Borrowed
+                            </span>
+                            <span className="font-medium">
+                              {Number(
+                                formatUnits(pool.borrow, 2)
+                              ).toLocaleString()}{" "}
+                              {pool.currency} (
+                              {Number(
+                                formatUnits(pool.outstanding - pool.borrow, 2)
+                              ).toLocaleString()}{" "}
+                              {pool.currency})
+                            </span>
+                          </div>
+                        </div>
+                        {pool.address !== farmer?.preferredPool && (
+                          <div className="grid grid-cols-2 gap-2 pt-2">
+                            <PoolActionDialog pool={pool} action="supply">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1"
                               >
-                                <stop
-                                  offset="5%"
-                                  stopColor="hsl(var(--primary))"
-                                  stopOpacity={0.3}
-                                />
-                                <stop
-                                  offset="95%"
-                                  stopColor="hsl(var(--primary))"
-                                  stopOpacity={0}
-                                />
-                              </linearGradient>
-                            </defs>
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <div className="text-muted-foreground">
-                            Supply APY
+                                <ArrowUpCircle className="w-3 h-3" />
+                                Supply
+                              </Button>
+                            </PoolActionDialog>
+                            <PoolActionDialog pool={pool} action="withdraw">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1"
+                              >
+                                <Minus className="w-3 h-3" />
+                                Withdraw
+                              </Button>
+                            </PoolActionDialog>
                           </div>
-                          <div className="text-lg font-bold text-green-600">
-                            {Number(formatUnits(pool.supplyAPY, MAX_BPS_POW))}%
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">
-                            Borrow APY
-                          </div>
-                          <div className="text-lg font-bold text-orange-600">
-                            {Number(formatUnits(pool.borrowAPY, MAX_BPS_POW))}%
-                          </div>
-                        </div>
-                      </div>
+                        )}
+                        {pool.address === farmer?.preferredPool && (
+                          <div className="grid grid-cols-2 gap-2 pt-2">
+                            <PoolActionDialog pool={pool} action="borrow">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                className="gap-1"
+                              >
+                                <ArrowDownCircle className="w-3 h-3" />
+                                Borrow
+                              </Button>
+                            </PoolActionDialog>
 
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">TVL</span>
-                          <span className="font-medium">
-                            {Number(
-                              formatUnits(pool.totalLiquidity, 2)
-                            ).toLocaleString()}{" "}
-                            {pool.currency}
-                          </span>
-                        </div>
-
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">
-                            Supplied
-                          </span>
-                          <span className="font-medium">
-                            {Number(formatUnits(pool.lp, 2)).toLocaleString()}{" "}
-                            {pool.currency}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">
-                            Borrowed
-                          </span>
-                          <span className="font-medium">
-                            {Number(
-                              formatUnits(pool.borrow, 2)
-                            ).toLocaleString()}{" "}
-                            {pool.currency} (
-                            {Number(
-                              formatUnits(pool.outstanding - pool.borrow, 2)
-                            ).toLocaleString()}{" "}
-                            {pool.currency})
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 pt-2">
-                        <PoolActionDialog pool={pool} action="supply">
-                          <Button variant="outline" size="sm" className="gap-1">
-                            <ArrowUpCircle className="w-3 h-3" />
-                            Supply
-                          </Button>
-                        </PoolActionDialog>
-                        <PoolActionDialog pool={pool} action="borrow">
-                          <Button variant="outline" size="sm" className="gap-1">
-                            <ArrowDownCircle className="w-3 h-3" />
-                            Borrow
-                          </Button>
-                        </PoolActionDialog>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <PoolActionDialog pool={pool} action="withdraw">
-                          <Button variant="ghost" size="sm" className="gap-1">
-                            <Minus className="w-3 h-3" />
-                            Withdraw
-                          </Button>
-                        </PoolActionDialog>
-                        <PoolActionDialog pool={pool} action="repay">
-                          <Button variant="ghost" size="sm" className="gap-1">
-                            <TrendingUp className="w-3 h-3" />
-                            Repay
-                          </Button>
-                        </PoolActionDialog>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                            <PoolActionDialog pool={pool} action="repay">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                className="gap-1"
+                              >
+                                <TrendingUp className="w-3 h-3" />
+                                Repay
+                              </Button>
+                            </PoolActionDialog>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
           </div>
         </div>
       </section>

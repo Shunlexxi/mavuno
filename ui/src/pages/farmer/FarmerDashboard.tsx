@@ -14,7 +14,7 @@ import { useFarmer } from "@/hooks/useFarmers";
 import { useAccount } from "wagmi";
 import { usePool } from "@/hooks/usePools";
 import { formatEther, formatUnits } from "viem";
-import { Symbols } from "@/utils/constants";
+import { MAX_BPS_POW, Symbols } from "@/utils/constants";
 import { useTimeline } from "@/hooks/useTimeline";
 
 export default function FarmerDashboard() {
@@ -137,25 +137,38 @@ export default function FarmerDashboard() {
                   Loan Amount
                 </span>
                 <span className="font-semibold">
-                  {Symbols[farmer?.preferredPool]}15,000
+                  {Symbols[farmer?.preferredPool]}
+                  {Number(formatUnits(pool?.borrow ?? 0n, 2)).toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
                   Interest Rate
                 </span>
-                <span className="font-semibold">5% APR</span>
+                <span className="font-semibold">
+                  {Number(
+                    formatUnits(pool?.borrowAPY ?? 0n, MAX_BPS_POW)
+                  ).toLocaleString()}
+                  % APR
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
-                  Repayment Due
+                  HealthFactor
                 </span>
-                <Badge variant="secondary">45 days</Badge>
+                <Badge variant="secondary">
+                  {Number(
+                    formatUnits(pool?.healthFactor ?? 0n, 0)
+                  ).toLocaleString()}
+                </Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Total Due</span>
                 <span className="font-semibold text-lg">
-                  {Symbols[farmer?.preferredPool]}15,750
+                  {Symbols[farmer?.preferredPool]}
+                  {Number(
+                    formatUnits(pool?.outstanding ?? 0n, 2)
+                  ).toLocaleString()}
                 </span>
               </div>
               <div className="pt-4">

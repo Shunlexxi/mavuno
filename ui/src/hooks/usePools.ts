@@ -95,8 +95,6 @@ export function usePool(
     if (!address) return;
 
     try {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-
       const response = await poolsService.getPoolByAddress(address, account);
 
       if (response.success) {
@@ -120,7 +118,7 @@ export function usePool(
         loading: false,
       }));
     }
-  }, [address]);
+  }, [address, account]);
 
   useEffect(() => {
     fetchPool();

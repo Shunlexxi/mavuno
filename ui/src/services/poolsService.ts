@@ -55,7 +55,10 @@ export class PoolsService {
       })) as bigint;
 
       const utilizationRate =
-        totalLiquidity <= 0n ? 0 : Number(totalBorrowed / totalLiquidity);
+        totalLiquidity <= 0n
+          ? 0
+          : Number((totalBorrowed * 100n) / totalLiquidity);
+
       const supplyAPY = BigInt((Number(borrowAPY) * utilizationRate) / 100);
 
       const lp =
@@ -220,7 +223,7 @@ export class PoolsService {
   ): { day: number; apy: number }[] {
     return Array.from({ length: days }, (_, i) => ({
       day: i + 1,
-      apy: supplyAPY + Math.sin(i * 0.2) * 2 + Math.random() * 1,
+      apy: supplyAPY + Math.sin(i * 0.02) * 2 + Math.random() * 1,
     }));
   }
 }

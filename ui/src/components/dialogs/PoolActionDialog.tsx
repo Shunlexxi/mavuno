@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -49,6 +49,7 @@ export default function PoolActionDialog({
   children,
 }: PoolActionDialogProps) {
   const [amount, setAmount] = useState("");
+  const [borrowable, setBorrowable] = useState(0);
   const [email, setEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isProcessingWithBank, setIsProcessingWithBank] = useState(false);
@@ -96,6 +97,42 @@ export default function PoolActionDialog({
   const config = actionConfig[action];
   const IconComponent = config.icon;
 
+  const approve = async () => {
+    toast.loading("Approving...");
+
+    await writeContract({
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "spender",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "approve",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "response",
+              type: "bool",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ],
+      address: pool.fiatUnderlying,
+      functionName: "approve",
+      args: [pool.address, parseUnits(amount, 2)],
+    });
+  };
+
   const handlePaystack = async () => {
     if (!email) {
       return toast.warning("Email is required for bank.");
@@ -113,6 +150,7 @@ export default function PoolActionDialog({
         setIsOpen(true);
 
         if (transaction.status == "success") {
+          toast.loading("Onramping...");
           const mintHash = await adminClient.writeContract({
             abi: fiatAbi,
             address: pool.fiat,
@@ -125,6 +163,8 @@ export default function PoolActionDialog({
           await publicClient.waitForTransactionReceipt({
             hash: mintHash,
           });
+
+          toast.loading("Approving...");
 
           const approveHash = await adminClient.writeContract({
             abi: [
@@ -165,6 +205,8 @@ export default function PoolActionDialog({
           });
 
           if (action === "supply") {
+            toast.loading("Supplying...");
+
             await adminClient.writeContract({
               abi: lendingPoolAbi,
               address: pool.address,
@@ -174,6 +216,8 @@ export default function PoolActionDialog({
               account: adminClient.account,
             });
           } else {
+            toast.loading("Repaying...");
+
             await adminClient.writeContract({
               abi: lendingPoolAbi,
               address: pool.address,
@@ -186,7 +230,7 @@ export default function PoolActionDialog({
             const db = getFirestore();
 
             await timelineService.createTimelinePost(address, {
-              content: `You repaid ${Symbols[pool.address]}${amount}`,
+              content: `You repaid ${Symbols[pool.address]}${amount} from back.`,
               type: "activity",
             });
 
@@ -194,7 +238,7 @@ export default function PoolActionDialog({
               totalRepaid: increment(Number(amount)),
             });
           }
-          toast(`Successful`);
+          toast.success(`Successful!`);
         } else {
           toast("Failed");
         }
@@ -214,40 +258,6 @@ export default function PoolActionDialog({
         toast(error.message);
         setIsProcessingWithBank(false);
       },
-    });
-  };
-
-  const approve = async () => {
-    await writeContract({
-      abi: [
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "spender",
-              type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "amount",
-              type: "uint256",
-            },
-          ],
-          name: "approve",
-          outputs: [
-            {
-              internalType: "bool",
-              name: "response",
-              type: "bool",
-            },
-          ],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-      ],
-      address: pool.fiatUnderlying,
-      functionName: "approve",
-      args: [pool.address, parseUnits(amount, 2)],
     });
   };
 
@@ -354,6 +364,11 @@ export default function PoolActionDialog({
         await updateDoc(doc(db, "farmers"), address, {
           totalRepaid: increment(Number(amount)),
         });
+
+        await timelineService.createTimelinePost(address, {
+          content: `You repaid ${Symbols[pool.address]}${amount}`,
+          type: "activity",
+        });
       } catch (error) {
         toast(error?.message);
       } finally {
@@ -372,6 +387,29 @@ export default function PoolActionDialog({
       100
     ).toFixed(2);
   };
+
+  const getBorrowable = useCallback(async () => {
+    try {
+      const result = (await publicClient.readContract({
+        abi: lendingPoolAbi,
+        address: pool.address,
+        functionName: "borrowable",
+        args: [address],
+        authorizationList: undefined,
+      })) as bigint;
+
+      setBorrowable(
+        Number(formatUnits(result, 2)) -
+          Number(formatUnits(pool.outstanding, 2))
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  }, [address, pool]);
+
+  useEffect(() => {
+    getBorrowable();
+  }, [getBorrowable]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -412,16 +450,32 @@ export default function PoolActionDialog({
                 </span>
               </div>
             )}
-            {action === "supply" ||
-              (action === "withdraw" && (
-                <div className="flex justify-between text-sm">
-                  <span>Supplied</span>
-                  <span className="font-semibold">
-                    {Number(formatUnits(pool.lp, 2)).toLocaleString()}{" "}
-                    {pool.currency}
-                  </span>
-                </div>
-              ))}
+            {(action === "supply" || action === "withdraw") && (
+              <div className="flex justify-between text-sm">
+                <span>Supplied</span>
+                <span className="font-semibold">
+                  {Number(formatUnits(pool.lp, 2)).toLocaleString()}{" "}
+                  {pool.currency}
+                </span>
+              </div>
+            )}
+            {(action === "borrow" || action === "repay") && (
+              <div className="flex justify-between text-sm">
+                <span>Outstanding</span>
+                <span className="font-semibold">
+                  {Number(formatUnits(pool.outstanding, 2)).toLocaleString()}{" "}
+                  {pool.currency}
+                </span>
+              </div>
+            )}
+            {action === "borrow" && (
+              <div className="flex justify-between text-sm">
+                <span>Max Borrowable</span>
+                <span className="font-semibold">
+                  {borrowable.toLocaleString()} {pool.currency}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Amount Input */}
