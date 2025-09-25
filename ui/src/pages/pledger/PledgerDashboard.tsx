@@ -19,7 +19,7 @@ import { formatEther } from "viem";
 export default function PledgerDashboard() {
   const { address } = useAccount();
   const { data: balance } = useBalance({ address });
-  const { pledges, loading } = usePledges({ pledgerAddress: address });
+  const { pledges, loading, refetch } = usePledges({ pledgerAddress: address });
 
   const dashboardStats = [
     {
@@ -31,17 +31,10 @@ export default function PledgerDashboard() {
     },
     {
       title: "Active Pledges",
-      value: pledges?.length || "0",
+      value: pledges?.length || 0,
       change: "Currently backing farmers",
       icon: Users,
       color: "text-primary",
-    },
-    {
-      title: "Locked Pledges",
-      value: pledges?.filter((p) => !p?.canWithdraw)?.length || "0",
-      change: "Securing active loans",
-      icon: TrendingUp,
-      color: "text-warning",
     },
     {
       title: "Available to Pledge",
@@ -74,7 +67,7 @@ export default function PledgerDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {dashboardStats.map((stat, index) => (
           <Card key={index} className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -148,15 +141,25 @@ export default function PledgerDashboard() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {pledge.canWithdraw && (
+                      <PledgeActionDialog
+                        farmer={pledge.farmer}
+                        action="withdraw"
+                        currentPledge={Number(pledge.amount)}
+                        onClose={() => {
+                          refetch();
+                        }}
+                      >
                         <Button variant="ghost" size="sm">
                           <ArrowDownLeft className="w-4 h-4" />
                         </Button>
-                      )}
+                      </PledgeActionDialog>
                       <PledgeActionDialog
                         farmer={pledge.farmer}
                         action="increase"
                         currentPledge={Number(pledge.amount)}
+                        onClose={() => {
+                          refetch();
+                        }}
                       >
                         <Button variant="ghost" size="sm">
                           <ArrowUpRight className="w-4 h-4" />

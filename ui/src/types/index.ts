@@ -40,7 +40,6 @@ export interface Pledge {
   amount: number;
   currency: "HBAR";
   createdAt: string;
-  canWithdraw: boolean;
 }
 
 export interface Pool {

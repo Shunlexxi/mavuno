@@ -9,6 +9,9 @@ import {
   query,
   getFirestore,
   where,
+  getDoc,
+  updateDoc,
+  increment,
 } from "firebase/firestore";
 import { Hex } from "viem";
 
@@ -57,6 +60,7 @@ export class PledgesService {
       const farmerResponse = await farmersService.getFarmerByAddress(
         pledgeData.farmerAddress
       );
+
       if (!farmerResponse.success || !farmerResponse.data) {
         return {
           data: {} as Pledge,
@@ -82,16 +86,85 @@ export class PledgesService {
         amount: pledgeData.amount,
         currency: pledgeData.currency,
         createdAt: new Date().toISOString(),
-        canWithdraw: true,
       };
 
       const db = getFirestore();
-      await setDoc(doc(db, "pledges", newPledge.id), newPledge, {
-        merge: true,
-      });
+
+      const docSnap = await getDoc(doc(db, "pledges", newPledge.id));
+
+      if (docSnap.exists()) {
+        await updateDoc(doc(db, "pledges", newPledge.id), {
+          amount: increment(newPledge.amount),
+          farmer: {
+            name: farmerResponse.data.name,
+            address: farmerResponse.data.address,
+            pledgeManager: farmerResponse.data.pledgeManager,
+            preferredPool: farmerResponse.data.preferredPool,
+            location: farmerResponse.data.location,
+            farmSize: farmerResponse.data.farmSize,
+            cropType: farmerResponse.data.cropType,
+            verified: false,
+          },
+        });
+      } else {
+        await setDoc(doc(db, "pledges", newPledge.id), newPledge, {
+          merge: true,
+        });
+      }
 
       return {
         data: newPledge,
+        success: true,
+        message: "Pledge created successfully",
+      };
+    } catch (error) {
+      throw new Error("Failed to create pledge");
+    }
+  }
+
+  async decreasePledge(
+    pledgerAddress: Hex,
+    pledgeData: CreatePledgeRequest
+  ): Promise<ApiResponse<Partial<Pledge>>> {
+    try {
+      const farmerResponse = await farmersService.getFarmerByAddress(
+        pledgeData.farmerAddress
+      );
+
+      if (!farmerResponse.success || !farmerResponse.data) {
+        return {
+          data: {} as Pledge,
+          success: false,
+          message: "Farmer not found",
+        };
+      }
+
+      const pledge: Partial<Pledge> = {
+        id: `${farmerResponse.data.address}-${pledgerAddress}`,
+      };
+
+      const db = getFirestore();
+
+      const docSnap = await getDoc(doc(db, "pledges", pledge.id));
+
+      if (docSnap.exists()) {
+        await updateDoc(doc(db, "pledges", pledge.id), {
+          amount: increment(-pledge.amount),
+          farmer: {
+            name: farmerResponse.data.name,
+            address: farmerResponse.data.address,
+            pledgeManager: farmerResponse.data.pledgeManager,
+            preferredPool: farmerResponse.data.preferredPool,
+            location: farmerResponse.data.location,
+            farmSize: farmerResponse.data.farmSize,
+            cropType: farmerResponse.data.cropType,
+            verified: false,
+          },
+        });
+      }
+
+      return {
+        data: pledge,
         success: true,
         message: "Pledge created successfully",
       };

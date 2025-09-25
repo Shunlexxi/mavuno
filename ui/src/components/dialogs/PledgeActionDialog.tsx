@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -25,11 +25,21 @@ import {
   getFirestore,
   where,
 } from "firebase/firestore";
+import { toast } from "sonner";
+import { useWriteContract } from "@/utils/hedera";
+import { useAccount } from "wagmi";
+import { pledgeManagerAbi } from "@/abis/pledgeManager";
+import { Hbar, HbarUnit } from "@hashgraph/sdk";
+import { parseEther } from "viem";
+import pledgesService from "@/services/pledgesService";
+import { publicClient } from "@/utils/constants";
+
 interface PledgeActionDialogProps {
   farmer: Partial<Farmer>;
-  action: "pledge" | "increase" | "withdraw";
+  action: "increase" | "withdraw";
   currentPledge?: number;
   children: React.ReactNode;
+  onClose: () => void;
 }
 
 export default function PledgeActionDialog({
@@ -37,10 +47,30 @@ export default function PledgeActionDialog({
   action,
   currentPledge = 0,
   children,
+  onClose,
 }: PledgeActionDialogProps) {
   const [amount, setAmount] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [active, setActive] = useState(true);
+
+  const { writeContract } = useWriteContract();
+  const { address } = useAccount();
+
+  const getPledgeStatus = useCallback(async () => {
+    const result = (await publicClient.readContract({
+      abi: pledgeManagerAbi,
+      address: farmer.pledgeManager,
+      functionName: "active",
+      authorizationList: undefined,
+    })) as boolean;
+
+    setActive(result);
+  }, [farmer]);
+
+  useEffect(() => {
+    getPledgeStatus();
+  }, [getPledgeStatus]);
 
   const actionConfig = {
     pledge: {
@@ -71,14 +101,62 @@ export default function PledgeActionDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsProcessing(true);
 
-    // Simulate transaction
-    setTimeout(() => {
-      setIsProcessing(false);
-      setIsOpen(false);
-      setAmount("");
-    }, 2000);
+    if (action === "increase") {
+      try {
+        setIsProcessing(true);
+
+        await writeContract({
+          abi: pledgeManagerAbi,
+          address: farmer.pledgeManager,
+          functionName: "pledge",
+          args: [address],
+          value: parseEther(amount),
+          metaArgs: {
+            amount: Hbar.from(amount, HbarUnit.Hbar),
+          },
+        });
+
+        await pledgesService.createPledge(address, {
+          farmerAddress: farmer.address,
+          amount: Number(amount),
+          currency: "HBAR",
+        });
+
+        setAmount("");
+        setIsOpen(false);
+        onClose();
+      } catch (error) {
+        toast.error(error?.message);
+      } finally {
+        setIsProcessing(false);
+      }
+    } else if (action === "withdraw") {
+      try {
+        setIsProcessing(true);
+
+        await writeContract({
+          abi: pledgeManagerAbi,
+          address: farmer.pledgeManager,
+          functionName: "withdraw",
+          args: [parseEther(amount)],
+        });
+
+        await pledgesService.decreasePledge(address, {
+          farmerAddress: farmer.address,
+          amount: Number(amount),
+          currency: "HBAR",
+        });
+
+        setAmount("");
+        setIsOpen(false);
+        onClose();
+      } catch (error) {
+        toast.error(error?.message);
+      } finally {
+        setIsProcessing(false);
+      }
+    }
   };
 
   const getNewTotal = () => {
@@ -146,6 +224,15 @@ export default function PledgeActionDialog({
             </div>
           )}
 
+          {action === "withdraw" && active && (
+            <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
+              <span className="text-sm font-medium">Active Pledge</span>
+              <Badge variant="outline" className="text-red-700">
+                Cannot Withdraw
+              </Badge>
+            </div>
+          )}
+
           {/* Amount Input */}
           <div className="space-y-2">
             <Label htmlFor="amount">
@@ -161,11 +248,7 @@ export default function PledgeActionDialog({
               required
               max={action === "withdraw" ? currentPledge : undefined}
             />
-            {action === "pledge" && (
-              <p className="text-xs text-muted-foreground">
-                Minimum pledge: 100 HBAR
-              </p>
-            )}
+
             {action === "withdraw" && (
               <p className="text-xs text-muted-foreground">
                 Maximum withdraw: {currentPledge.toLocaleString()} HBAR
@@ -230,7 +313,9 @@ export default function PledgeActionDialog({
           <Button
             type="submit"
             className="w-full"
-            disabled={isProcessing || !amount}
+            disabled={
+              isProcessing || !amount || (action === "withdraw" && active)
+            }
           >
             {isProcessing
               ? "Processing..."
