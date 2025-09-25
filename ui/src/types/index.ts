@@ -21,13 +21,12 @@ export interface Farmer extends User {
 
 export interface TimelinePost {
   id: string;
-  farmerAddress?: Hex;
-  pledgerAddress?: Hex;
-  farmer: Partial<Farmer>;
+  address?: Hex;
+  farmer?: Partial<Farmer>;
   content: string;
   images?: string[];
   video?: string;
-  type: "update" | "milestone" | "harvest" | "request";
+  type: "update" | "activity";
   createdAt: string;
   likes: number;
   comments: number;

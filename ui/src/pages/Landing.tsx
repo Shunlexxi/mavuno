@@ -344,10 +344,10 @@ export default function Landing() {
         <div className="container mx-auto">
           <div className="grid md:grid-cols-3 gap-8 text-center">
             <div className="fade-in">
-              <div className="text-4xl font-bold text-primary mb-2">₦2.5M+</div>
-              <div className="text-muted-foreground">
-                Total Loans Facilitated
+              <div className="text-4xl font-bold text-primary mb-2">
+                2.5M+ Hbar
               </div>
+              <div className="text-muted-foreground">Backed Loans</div>
             </div>
             <div className="fade-in">
               <div className="text-4xl font-bold text-primary mb-2">150+</div>

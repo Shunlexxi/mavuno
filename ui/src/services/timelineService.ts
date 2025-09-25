@@ -25,8 +25,8 @@ export class TimelineService {
       const dbRef = collection(db, "timelines");
       let q = query(dbRef);
 
-      if (filters?.farmerAddress) {
-        q = query(q, where("farmerAddress", "==", filters?.farmerAddress));
+      if (filters?.address) {
+        q = query(q, where("address", "==", filters?.address));
       }
 
       if (filters?.type) {
@@ -60,36 +60,29 @@ export class TimelineService {
   }
 
   async createTimelinePost(
-    farmerAddress: Hex,
+    address: Hex,
     postData: CreateTimelinePostRequest
   ): Promise<ApiResponse<TimelinePost>> {
     try {
-      const farmerResponse =
-        await farmersService.getFarmerByAddress(farmerAddress);
-
-      if (!farmerResponse.success || !farmerResponse.data) {
-        return {
-          data: {} as TimelinePost,
-          success: false,
-          message: "Farmer not found",
-        };
-      }
+      const farmerResponse = await farmersService.getFarmerByAddress(address);
 
       const newPost: TimelinePost = {
         id: Date.now().toString(),
-        farmerAddress,
-        farmer: {
-          name: farmerResponse.data.name,
-          address: farmerResponse.data.address,
-          pledgeManager: farmerResponse.data.pledgeManager,
-          preferredPool: farmerResponse.data.preferredPool,
-          location: farmerResponse.data.location,
-          farmSize: farmerResponse.data.farmSize,
-          cropType: farmerResponse.data.cropType,
-          verified: false,
-        },
+        address,
+        farmer: farmerResponse.success
+          ? {
+              name: farmerResponse.data.name,
+              address: farmerResponse.data.address,
+              pledgeManager: farmerResponse.data.pledgeManager,
+              preferredPool: farmerResponse.data.preferredPool,
+              location: farmerResponse.data.location,
+              farmSize: farmerResponse.data.farmSize,
+              cropType: farmerResponse.data.cropType,
+              verified: false,
+            }
+          : null,
         content: postData.content,
-        images: postData.images,
+        images: postData.images ?? null,
         type: postData.type,
         createdAt: new Date().toISOString(),
         likes: 0,

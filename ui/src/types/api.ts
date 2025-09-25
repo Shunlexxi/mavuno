@@ -40,9 +40,8 @@ export interface UpdatePledgeRequest {
 }
 
 export interface CreateTimelinePostRequest {
-  pledgerAddress?: string;
   content: string;
-  type: "update" | "milestone" | "harvest" | "request";
+  type: "update" | "activity";
   images?: string[];
 }
 
@@ -61,7 +60,7 @@ export interface FarmerFilters {
 }
 
 export interface TimelineFilters {
-  farmerAddress?: string;
+  address?: string;
   type?: string;
   limit?: number;
   offset?: number;

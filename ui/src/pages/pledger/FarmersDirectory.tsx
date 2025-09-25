@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search, MapPin, Heart, Users, Filter, Star, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFarmers } from "@/hooks/useFarmers";
+import { Symbols } from "@/utils/constants";
 
 export default function FarmersDirectory() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -101,18 +102,23 @@ export default function FarmersDirectory() {
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Total Borrowed</span>
                   <span className="font-semibold">
-                    ₦{farmer.totalBorrowed.toLocaleString()}
+                    {Symbols[farmer?.preferredPool]}
+                    {farmer.totalBorrowed.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Total Repaid</span>
                   <span className="font-semibold text-success">
-                    ₦{farmer.totalRepaid.toLocaleString()}
+                    {Symbols[farmer?.preferredPool]}
+                    {farmer.totalRepaid.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Current Loan</span>
-                  <span className="font-semibold">₦{0}</span>
+                  <span className="font-semibold">
+                    {Symbols[farmer?.preferredPool]}
+                    {0}
+                  </span>
                 </div>
               </div>
 

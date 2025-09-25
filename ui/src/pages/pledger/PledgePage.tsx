@@ -22,6 +22,7 @@ import { pledgeManagerAbi } from "@/abis/pledgeManager";
 import { Hbar, HbarUnit } from "@hashgraph/sdk";
 import { useAccount } from "wagmi";
 import pledgesService from "@/services/pledgesService";
+import { Symbols } from "@/utils/constants";
 
 export default function PledgePage() {
   const { farmerAddress } = useParams();
@@ -157,18 +158,23 @@ export default function PledgePage() {
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Total Borrowed</span>
                 <span className="font-semibold">
-                  ₦{farmer.totalBorrowed.toLocaleString()}
+                  {Symbols[farmer?.preferredPool]}
+                  {farmer.totalBorrowed.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Total Repaid</span>
                 <span className="font-semibold text-success">
-                  ₦{farmer.totalRepaid.toLocaleString()}
+                  {Symbols[farmer?.preferredPool]}
+                  {farmer.totalRepaid.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Current Loan</span>
-                <span className="font-semibold">₦{0}</span>
+                <span className="font-semibold">
+                  {Symbols[farmer?.preferredPool]}
+                  {0}
+                </span>
               </div>
             </div>
           </CardContent>

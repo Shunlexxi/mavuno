@@ -8,32 +8,33 @@ import {
   CheckCircle,
   Plus,
   MessageSquare,
+  Loader,
 } from "lucide-react";
 import { useFarmer } from "@/hooks/useFarmers";
 import { useAccount } from "wagmi";
 import { usePool } from "@/hooks/usePools";
 import { formatEther, formatUnits } from "viem";
+import { Symbols } from "@/utils/constants";
+import { useTimeline } from "@/hooks/useTimeline";
 
 export default function FarmerDashboard() {
   const { address } = useAccount();
 
-  const { farmer, loading } = useFarmer(address);
-  const { pool, loading: poolLoading } = usePool(
-    farmer?.preferredPool,
-    address
-  );
+  const { farmer, loading: loadingFarmer } = useFarmer(address);
+  const { pool } = usePool(farmer?.preferredPool, address);
+  const { posts } = useTimeline({ address, type: "activity" });
 
   const stats = [
     {
       title: "Current Loan",
-      value: `₦${Number(formatUnits(pool?.borrow ?? 0n, 2)).toLocaleString()}`,
+      value: `${Symbols[farmer?.preferredPool]}${Number(formatUnits(pool?.borrow ?? 0n, 2)).toLocaleString()}`,
       change: "Since date",
       icon: DollarSign,
       color: "text-primary",
     },
     {
       title: "Total Repaid",
-      value: `₦${farmer?.totalRepaid?.toLocaleString()}`,
+      value: `${Symbols[farmer?.preferredPool]}${farmer?.totalRepaid?.toLocaleString()}`,
       change: "Since date",
       icon: CheckCircle,
       color: "text-success",
@@ -53,6 +54,13 @@ export default function FarmerDashboard() {
       color: "text-primary",
     },
   ];
+
+  if (loadingFarmer)
+    return (
+      <div className="flex items-center justify-center h-full w-full">
+        <Loader className="animate-spin" />
+      </div>
+    );
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -102,29 +110,19 @@ export default function FarmerDashboard() {
             <CardTitle>Recent Timeline Activity</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-              <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm">
-                  Your latest harvest update received 24 likes
-                </p>
-                <p className="text-xs text-muted-foreground">2 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-              <div className="w-2 h-2 bg-success rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm">New pledger joined your campaign</p>
-                <p className="text-xs text-muted-foreground">1 day ago</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-              <div className="w-2 h-2 bg-warning rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm">Loan repayment reminder - 7 days left</p>
-                <p className="text-xs text-muted-foreground">3 days ago</p>
-              </div>
-            </div>
+            {posts.map((post) => {
+              return (
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                  <div className="flex-1">
+                    <p className="text-sm">{post.content}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {post.createdAt}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
 
@@ -138,7 +136,9 @@ export default function FarmerDashboard() {
                 <span className="text-sm text-muted-foreground">
                   Loan Amount
                 </span>
-                <span className="font-semibold">₦15,000</span>
+                <span className="font-semibold">
+                  {Symbols[farmer?.preferredPool]}15,000
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">
@@ -154,7 +154,9 @@ export default function FarmerDashboard() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Total Due</span>
-                <span className="font-semibold text-lg">₦15,750</span>
+                <span className="font-semibold text-lg">
+                  {Symbols[farmer?.preferredPool]}15,750
+                </span>
               </div>
               <div className="pt-4">
                 <Button className="w-full">Make Payment</Button>

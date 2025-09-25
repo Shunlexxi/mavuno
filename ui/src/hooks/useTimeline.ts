@@ -13,7 +13,7 @@ interface UseTimelineState {
 interface UseTimelineReturn extends UseTimelineState {
   refetch: () => Promise<void>;
   createPost: (
-    farmerAddress: string,
+    address: string,
     postData: CreateTimelinePostRequest
   ) => Promise<TimelinePost | null>;
   deletePost: (id: string) => Promise<boolean>;
@@ -71,12 +71,12 @@ export function useTimeline(filters?: TimelineFilters): UseTimelineReturn {
 
   const createPost = useCallback(
     async (
-      farmerAddress: Hex,
+      address: Hex,
       postData: CreateTimelinePostRequest
     ): Promise<TimelinePost | null> => {
       try {
         const response = await timelineService.createTimelinePost(
-          farmerAddress,
+          address,
           postData
         );
 

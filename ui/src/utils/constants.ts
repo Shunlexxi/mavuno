@@ -28,5 +28,11 @@ export const Contracts = {
   RandPool: "0x0b61B3a9a233AcF5ddd9e81c0C555978Bba531aB" as Hex,
 };
 
+export const Symbols: Record<Hex, string> = {};
+
+Symbols[Contracts.NairaPool] = "₦";
+Symbols[Contracts.CediPool] = "₵";
+Symbols[Contracts.RandPool] = "R";
+
 export const MAX_BPS = 10_000;
 export const MAX_BPS_POW = 2;

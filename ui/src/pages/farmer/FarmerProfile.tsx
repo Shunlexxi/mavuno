@@ -14,32 +14,40 @@ import {
 } from "lucide-react";
 import { Farmer } from "@/types";
 import { useState } from "react";
-
-const achievements = [
-  {
-    title: "Verified Farmer",
-    icon: Star,
-    description: "Successfully verified account",
-  },
-  {
-    title: "Sustainable Farming",
-    icon: Award,
-    description: "Certified sustainable practices",
-  },
-  {
-    title: "Community Leader",
-    icon: Users,
-    description: "Mentored 10+ local farmers",
-  },
-  {
-    title: "Top Performer",
-    icon: TrendingUp,
-    description: "98% repayment rate",
-  },
-];
+import { usePledges } from "@/hooks/usePledges";
+import { useFarmer } from "@/hooks/useFarmers";
+import { useAccount } from "wagmi";
+import { Symbols } from "@/utils/constants";
 
 export default function FarmerProfile() {
-  const [farmer, setFarmer] = useState<Farmer | undefined>(undefined);
+  const { address } = useAccount();
+  const { farmer } = useFarmer(address);
+  const { pledges } = usePledges({ farmerAddress: address });
+
+  const achievements = [
+    {
+      title: "Verified Farmer",
+      icon: Star,
+      description: "Successfully verified account",
+    },
+    {
+      title: "Sustainable Farming",
+      icon: Award,
+      description: "Certified sustainable practices",
+    },
+    {
+      title: "Community Leader",
+      icon: Users,
+      description: "Mentored 10+ local farmers",
+    },
+    {
+      title: "Top Performer",
+      icon: TrendingUp,
+      description: `${Math.round(
+        (farmer.totalRepaid / farmer.totalBorrowed) * 100
+      )}% repayment rate`,
+    },
+  ];
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -57,7 +65,7 @@ export default function FarmerProfile() {
           <CardContent className="p-6 text-center">
             <div className="relative inline-block mb-4">
               <Avatar className="w-24 h-24">
-                <AvatarImage src={farmer.avatar} />
+                <AvatarImage src={"/images/avater.png"} />
                 <AvatarFallback className="text-2xl">
                   {farmer.name
                     .split(" ")
@@ -138,15 +146,18 @@ export default function FarmerProfile() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-primary">
-                    ₦{farmer.totalLoans.toLocaleString()}
+                    {Symbols[farmer?.preferredPool]}
+                    {farmer.totalBorrowed.toLocaleString()}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Total Loans
+                    Total Borrowed
                   </div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-success">
-                    {Math.round((farmer.totalRepaid / farmer.totalLoans) * 100)}
+                    {Math.round(
+                      (farmer.totalRepaid / farmer.totalBorrowed) * 100
+                    )}
                     %
                   </div>
                   <div className="text-xs text-muted-foreground">
@@ -154,15 +165,20 @@ export default function FarmerProfile() {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">8</div>
+                  <div className="text-2xl font-bold text-primary">
+                    {pledges?.length}
+                  </div>
                   <div className="text-xs text-muted-foreground">
                     Active Pledgers
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">2</div>
+                  <div className="text-2xl font-bold text-primary">
+                    {Symbols[farmer?.preferredPool]}
+                    {farmer.totalRepaid.toLocaleString()}
+                  </div>
                   <div className="text-xs text-muted-foreground">
-                    Completed Loans
+                    Total Repaid
                   </div>
                 </div>
               </div>

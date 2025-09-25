@@ -22,12 +22,20 @@ import {
   Contracts,
   MAX_BPS_POW,
   publicClient,
+  Symbols,
 } from "@/utils/constants";
 import { hederaTestnet } from "viem/chains";
 import { useAccount } from "wagmi";
 import { fiatAbi } from "@/abis/fiat";
 import { useWriteContract } from "@/utils/hedera";
-import { doc, updateDoc, getFirestore, increment } from "firebase/firestore";
+import {
+  doc,
+  updateDoc,
+  getFirestore,
+  increment,
+  setDoc,
+} from "firebase/firestore";
+import timelineService from "@/services/timelineService";
 
 interface PoolActionDialogProps {
   pool: Pool;
@@ -176,6 +184,12 @@ export default function PoolActionDialog({
             });
 
             const db = getFirestore();
+
+            await timelineService.createTimelinePost(address, {
+              content: `You repaid ${Symbols[pool.address]}${amount}`,
+              type: "activity",
+            });
+
             await updateDoc(doc(db, "farmers"), address, {
               totalRepaid: increment(Number(amount)),
             });

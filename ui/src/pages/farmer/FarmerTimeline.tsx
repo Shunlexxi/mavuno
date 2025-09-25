@@ -12,40 +12,42 @@ import {
   Plus,
   MapPin,
   Calendar,
+  Loader,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import NewUpdateDialog from "@/components/dialogs/NewUpdateDialog";
 import { useTimeline } from "@/hooks/useTimeline";
+import { useFarmer } from "@/hooks/useFarmers";
+import { useAccount } from "wagmi";
+import { toast } from "sonner";
 
 export default function FarmerTimeline() {
   const [newPost, setNewPost] = useState("");
-  const { posts, loading } = useTimeline();
+  const { address } = useAccount();
+  const { farmer, loading: loadingFarmer } = useFarmer(address);
+  const { posts, loading, createPost } = useTimeline({
+    address,
+    type: "update",
+  });
 
-  const getPostTypeColor = (type: string) => {
-    switch (type) {
-      case "harvest":
-        return "bg-success text-success-foreground";
-      case "milestone":
-        return "bg-primary text-primary-foreground";
-      case "request":
-        return "bg-warning text-warning-foreground";
-      default:
-        return "bg-secondary text-secondary-foreground";
+  const handlePost = async () => {
+    try {
+      await createPost(address, {
+        content: newPost,
+        type: "update",
+      });
+
+      setNewPost("");
+    } catch (error) {
+      toast.error(error?.message);
     }
   };
 
-  const getPostTypeLabel = (type: string) => {
-    switch (type) {
-      case "harvest":
-        return "🌾 Harvest";
-      case "milestone":
-        return "🎯 Milestone";
-      case "request":
-        return "🤝 Request";
-      default:
-        return "📝 Update";
-    }
-  };
+  if (loadingFarmer)
+    return (
+      <div className="flex items-center justify-center h-full w-full">
+        <Loader className="animate-spin" />
+      </div>
+    );
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -61,14 +63,19 @@ export default function FarmerTimeline() {
         <CardHeader>
           <div className="flex items-center gap-3">
             <Avatar>
-              <AvatarImage src="/api/placeholder/40/40" />
-              <AvatarFallback>SO</AvatarFallback>
+              <AvatarImage src={"/images/avatar.png"} />
+              <AvatarFallback>
+                {farmer?.name
+                  ?.split(" ")
+                  ?.map((n) => n[0])
+                  ?.join("")}
+              </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold">Sarah Okafor</h3>
+              <h3 className="font-semibold">{farmer?.name}</h3>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-3 h-3" />
-                <span>Kaduna State, Nigeria</span>
+                <span>{farmer?.location}</span>
               </div>
             </div>
           </div>
@@ -86,14 +93,8 @@ export default function FarmerTimeline() {
                 <Camera className="w-4 h-4" />
                 Add Photos
               </Button>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Plus className="w-4 h-4" />
-                Tag Type
-              </Button>
             </div>
-            <NewUpdateDialog>
-              <Button>Share Update</Button>
-            </NewUpdateDialog>
+            <Button onClick={handlePost}>Share Update</Button>
           </div>
         </CardContent>
       </Card>
@@ -157,9 +158,6 @@ export default function FarmerTimeline() {
                         </div>
                       </div>
                     </div>
-                    <Badge className={getPostTypeColor(post.type)}>
-                      {getPostTypeLabel(post.type)}
-                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
