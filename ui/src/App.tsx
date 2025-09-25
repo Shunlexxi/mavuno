@@ -18,6 +18,8 @@ import { hederaTestnet } from "@reown/appkit/networks";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { WagmiProvider } from "wagmi";
 import { createAppKit } from "@reown/appkit/react";
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +56,19 @@ createAppKit({
   },
 });
 
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FB_API_KEY,
+  authDomain: import.meta.env.VITE_FB_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FB_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FB_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FB_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FB_APP_ID,
+  measurementId: import.meta.env.VITE_FB_MEASUREMENT_ID,
+};
+
+const app = initializeApp(firebaseConfig);
+getAnalytics(app);
+
 const App = () => (
   <WagmiProvider config={wagmiAdapter.wagmiConfig}>
     <QueryClientProvider client={queryClient}>
@@ -78,7 +93,7 @@ const App = () => (
             <Route path="/pledger" element={<AppLayout />}>
               <Route path="dashboard" element={<PledgerDashboard />} />
               <Route path="farmers" element={<FarmersDirectory />} />
-              <Route path="pledge/:farmerId" element={<PledgePage />} />
+              <Route path="pledge/:farmerAddress" element={<PledgePage />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

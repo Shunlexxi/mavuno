@@ -1,7 +1,7 @@
 import { Hex } from "viem";
 
 export interface User {
-  address: string;
+  address: Hex;
   name: string;
   email: string;
   location: string;
@@ -15,13 +15,15 @@ export interface User {
 }
 
 export interface Farmer extends User {
-  pledgeManager: string;
+  pledgeManager: Hex;
+  preferredPool: Hex;
 }
 
 export interface TimelinePost {
   id: string;
-  farmerId: string;
-  farmer: Farmer;
+  farmerAddress?: Hex;
+  pledgerAddress?: Hex;
+  farmer: Partial<Farmer>;
   content: string;
   images?: string[];
   video?: string;
@@ -33,41 +35,29 @@ export interface TimelinePost {
 
 export interface Pledge {
   id: string;
-  pledgerId: string;
-  farmerId: string;
-  farmer: Farmer;
-  amount: bigint;
+  pledgerAddress: string;
+  farmerAddress: string;
+  farmer: Partial<Farmer>;
+  amount: number;
   currency: "HBAR";
-  status: "active" | "withdrawn" | "locked";
   createdAt: string;
   canWithdraw: boolean;
-  lockEndDate?: string;
-  seasonCycle?: string;
 }
 
 export interface Pool {
   address: Hex;
+  fiat: Hex;
+  fiatUnderlying: Hex;
   currency: "NGN" | "CEDI" | "RAND";
   totalLiquidity: bigint;
   totalBorrowed: bigint;
   supplyAPY: bigint;
   borrowAPY: bigint;
   utilizationRate: number;
-}
-
-export interface PoolPosition {
-  poolAddress: Hex;
-  account: Hex;
   lp: bigint;
   borrow: bigint;
   outstanding: bigint;
   healthFactor: bigint;
   totalPledge: bigint;
   active: boolean;
-}
-
-export interface PledgeStats {
-  totalPledged: bigint;
-  activePledges: bigint;
-  lockedPledges: bigint;
 }

@@ -13,12 +13,12 @@ export default function FarmersDirectory() {
   const navigate = useNavigate();
   const { farmers, loading } = useFarmers({ searchTerm });
 
-  const handleViewFarmer = (farmerId: string) => {
-    navigate(`/pledger/farmers/${farmerId}`);
+  const handleViewFarmer = (address: string) => {
+    navigate(`/pledger/farmers/${address}`);
   };
 
-  const handlePledge = (farmerId: string) => {
-    navigate(`/pledger/pledge/${farmerId}`);
+  const handlePledge = (address: string) => {
+    navigate(`/pledger/pledge/${address}`);
   };
 
   return (
@@ -55,7 +55,7 @@ export default function FarmersDirectory() {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src={farmer.avatar} />
+                    <AvatarImage src={"/imgaes/avatar.png"} />
                     <AvatarFallback>
                       {farmer.name
                         .split(" ")
@@ -99,16 +99,15 @@ export default function FarmersDirectory() {
               {/* Farmer Stats */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Total Loans</span>
+                  <span className="text-muted-foreground">Total Borrowed</span>
                   <span className="font-semibold">
-                    ₦{farmer.totalLoans.toLocaleString()}
+                    ₦{farmer.totalBorrowed.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Repayment Rate</span>
+                  <span className="text-muted-foreground">Total Repaid</span>
                   <span className="font-semibold text-success">
-                    {Math.round((farmer.totalRepaid / farmer.totalLoans) * 100)}
-                    %
+                    ₦{farmer.totalRepaid.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">

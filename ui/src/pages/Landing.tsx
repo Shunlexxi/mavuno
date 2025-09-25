@@ -23,11 +23,13 @@ import PoolActionDialog from "../components/dialogs/PoolActionDialog";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { usePools } from "../hooks/usePools";
 import { formatUnits } from "viem";
-import { MAX_BPS, MAX_BPS_POW } from "@/utils/constants";
+import { MAX_BPS_POW } from "@/utils/constants";
+import { useAccount } from "wagmi";
 
 export default function Landing() {
   const navigate = useNavigate();
-  const { pools, loading: poolsLoading, generateChartData } = usePools();
+  const { address } = useAccount();
+  const { pools, loading: poolsLoading, generateChartData } = usePools(address);
 
   const features = [
     {
@@ -227,9 +229,7 @@ export default function Landing() {
 
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">
-                            Total Liquidity
-                          </span>
+                          <span className="text-muted-foreground">TVL</span>
                           <span className="font-medium">
                             {Number(
                               formatUnits(pool.totalLiquidity, 2)
@@ -237,15 +237,29 @@ export default function Landing() {
                             {pool.currency}
                           </span>
                         </div>
+
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">
-                            Total Borrowed
+                            Supplied
+                          </span>
+                          <span className="font-medium">
+                            {Number(formatUnits(pool.lp, 2)).toLocaleString()}{" "}
+                            {pool.currency}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Borrowed
                           </span>
                           <span className="font-medium">
                             {Number(
-                              formatUnits(pool.totalBorrowed, 2)
+                              formatUnits(pool.borrow, 2)
                             ).toLocaleString()}{" "}
-                            {pool.currency}
+                            {pool.currency} (
+                            {Number(
+                              formatUnits(pool.outstanding - pool.borrow, 2)
+                            ).toLocaleString()}{" "}
+                            {pool.currency})
                           </span>
                         </div>
                       </div>

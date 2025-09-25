@@ -26,6 +26,9 @@ import {
 import { hederaTestnet } from "viem/chains";
 import { useAccount } from "wagmi";
 import { fiatAbi } from "@/abis/fiat";
+import { useWriteContract } from "@/utils/hedera";
+import { doc, updateDoc, getFirestore, increment } from "firebase/firestore";
+
 interface PoolActionDialogProps {
   pool: Pool;
   action: "supply" | "borrow" | "withdraw" | "repay";
@@ -43,6 +46,7 @@ export default function PoolActionDialog({
   const [isProcessingWithBank, setIsProcessingWithBank] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const { address } = useAccount();
+  const { writeContract } = useWriteContract();
 
   const actionConfig = {
     supply: {
@@ -101,33 +105,9 @@ export default function PoolActionDialog({
         setIsOpen(true);
 
         if (transaction.status == "success") {
-          const associateHash = await adminClient.writeContract({
-            abi: [
-              {
-                inputs: [],
-                name: "associate",
-                outputs: [
-                  {
-                    internalType: "uint256",
-                    name: "responseCode",
-                    type: "uint256",
-                  },
-                ],
-                stateMutability: "nonpayable",
-                type: "function",
-              },
-            ],
-            address: Contracts.NairaFiatUnderlying,
-            functionName: "associate",
-            chain: hederaTestnet,
-            account: adminClient.account,
-          });
-
-          await publicClient.waitForTransactionReceipt({ hash: associateHash });
-
           const mintHash = await adminClient.writeContract({
             abi: fiatAbi,
-            address: Contracts.NairaFiat,
+            address: pool.fiat,
             functionName: "mint",
             args: [adminClient.account.address, parseUnits(amount, 2)],
             chain: hederaTestnet,
@@ -165,9 +145,9 @@ export default function PoolActionDialog({
                 type: "function",
               },
             ],
-            address: Contracts.NairaFiatUnderlying,
+            address: pool.fiatUnderlying,
             functionName: "approve",
-            args: [Contracts.NairaPool, parseUnits(amount, 2)],
+            args: [pool.address, parseUnits(amount, 2)],
             chain: hederaTestnet,
             account: adminClient.account,
           });
@@ -176,26 +156,31 @@ export default function PoolActionDialog({
             hash: approveHash,
           });
 
-          const txHash =
-            action === "supply"
-              ? await adminClient.writeContract({
-                  abi: lendingPoolAbi,
-                  address: Contracts.NairaPool,
-                  functionName: "supply",
-                  args: [parseUnits(amount, 2), address],
-                  chain: hederaTestnet,
-                  account: adminClient.account,
-                })
-              : await adminClient.writeContract({
-                  abi: lendingPoolAbi,
-                  address: Contracts.NairaPool,
-                  functionName: "repay",
-                  args: [parseUnits(amount, 2), address],
-                  chain: hederaTestnet,
-                  account: adminClient.account,
-                });
+          if (action === "supply") {
+            await adminClient.writeContract({
+              abi: lendingPoolAbi,
+              address: pool.address,
+              functionName: "supply",
+              args: [parseUnits(amount, 2), address],
+              chain: hederaTestnet,
+              account: adminClient.account,
+            });
+          } else {
+            await adminClient.writeContract({
+              abi: lendingPoolAbi,
+              address: pool.address,
+              functionName: "repay",
+              args: [parseUnits(amount, 2), address],
+              chain: hederaTestnet,
+              account: adminClient.account,
+            });
 
-          toast(`Transaction sent: ${txHash}`);
+            const db = getFirestore();
+            await updateDoc(doc(db, "farmers"), address, {
+              totalRepaid: increment(Number(amount)),
+            });
+          }
+          toast(`Successful`);
         } else {
           toast("Failed");
         }
@@ -218,16 +203,151 @@ export default function PoolActionDialog({
     });
   };
 
+  const approve = async () => {
+    await writeContract({
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "spender",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "approve",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "response",
+              type: "bool",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+      ],
+      address: pool.fiatUnderlying,
+      functionName: "approve",
+      args: [pool.address, parseUnits(amount, 2)],
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsProcessing(true);
 
-    // Simulate transaction
-    setTimeout(() => {
-      setIsProcessing(false);
-      setIsOpen(false);
-      setAmount("");
-    }, 2000);
+    if (!localStorage.getItem(`associated-${pool.fiatUnderlying}`)) {
+      const hash = await writeContract({
+        abi: [
+          {
+            inputs: [],
+            name: "associate",
+            outputs: [
+              {
+                internalType: "uint256",
+                name: "responseCode",
+                type: "uint256",
+              },
+            ],
+            stateMutability: "nonpayable",
+            type: "function",
+          },
+        ],
+        address: pool.fiatUnderlying,
+        functionName: "associate",
+        args: [],
+      });
+
+      localStorage.setItem(`associated-${pool.fiatUnderlying}`, hash);
+    }
+
+    if (action === "withdraw") {
+      try {
+        setIsProcessing(true);
+
+        await writeContract({
+          abi: lendingPoolAbi,
+          address: pool.address,
+          functionName: "withdrawSupply",
+          args: [parseUnits(amount, 2)],
+        });
+      } catch (error) {
+        toast(error?.message);
+      } finally {
+        setIsProcessing(false);
+        setIsOpen(false);
+        setAmount("");
+      }
+    } else if (action === "supply") {
+      try {
+        setIsProcessing(true);
+
+        await approve();
+
+        await writeContract({
+          abi: lendingPoolAbi,
+          address: pool.address,
+          functionName: "supply",
+          args: [parseUnits(amount, 2), address],
+        });
+      } catch (error) {
+        toast(error?.message);
+      } finally {
+        setIsProcessing(false);
+        setIsOpen(false);
+        setAmount("");
+      }
+    } else if (action === "borrow") {
+      try {
+        setIsProcessing(true);
+
+        await writeContract({
+          abi: lendingPoolAbi,
+          address: pool.address,
+          functionName: "borrow",
+          args: [parseUnits(amount, 2)],
+        });
+
+        const db = getFirestore();
+        await updateDoc(doc(db, "farmers"), address, {
+          totalBorrowed: increment(Number(amount)),
+        });
+      } catch (error) {
+        toast(error?.message);
+      } finally {
+        setIsProcessing(false);
+        setIsOpen(false);
+        setAmount("");
+      }
+    } else if (action === "repay") {
+      try {
+        setIsProcessing(true);
+
+        await approve();
+
+        await writeContract({
+          abi: lendingPoolAbi,
+          address: pool.address,
+          functionName: "repay",
+          args: [parseUnits(amount, 2), address],
+        });
+
+        const db = getFirestore();
+        await updateDoc(doc(db, "farmers"), address, {
+          totalRepaid: increment(Number(amount)),
+        });
+      } catch (error) {
+        toast(error?.message);
+      } finally {
+        setIsProcessing(false);
+        setIsOpen(false);
+        setAmount("");
+      }
+    }
   };
 
   const calculateInterest = () => {
@@ -261,15 +381,33 @@ export default function PoolActionDialog({
             <div className="flex justify-between text-sm">
               <span>{action === "supply" ? "Supply APY" : "Borrow APY"}</span>
               <span className="font-semibold text-green-600">
-                {action === "supply" ? pool.supplyAPY : pool.borrowAPY}%
+                {action === "supply"
+                  ? Number(formatUnits(pool.supplyAPY, MAX_BPS_POW))
+                  : Number(formatUnits(pool.borrowAPY, MAX_BPS_POW))}
+                %
               </span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span>Available Liquidity</span>
-              <span className="font-semibold">
-                {pool.totalLiquidity.toLocaleString()} {pool.currency}
-              </span>
-            </div>
+            {action === "borrow" && (
+              <div className="flex justify-between text-sm">
+                <span>Available Liquidity</span>
+                <span className="font-semibold">
+                  {Number(
+                    formatUnits(pool.totalLiquidity - pool.totalBorrowed, 2)
+                  ).toLocaleString()}{" "}
+                  {pool.currency}
+                </span>
+              </div>
+            )}
+            {action === "supply" ||
+              (action === "withdraw" && (
+                <div className="flex justify-between text-sm">
+                  <span>Supplied</span>
+                  <span className="font-semibold">
+                    {Number(formatUnits(pool.lp, 2)).toLocaleString()}{" "}
+                    {pool.currency}
+                  </span>
+                </div>
+              ))}
           </div>
 
           {/* Amount Input */}
@@ -291,7 +429,7 @@ export default function PoolActionDialog({
           </div>
 
           {/* Transaction Summary */}
-          {amount && (
+          {amount && (action === "borrow" || action === "supply") && (
             <div className="space-y-3">
               <Separator />
               <div className="space-y-2 text-sm">

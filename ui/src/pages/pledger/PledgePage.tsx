@@ -15,15 +15,24 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Heart, MapPin, Star, Info, Calculator } from "lucide-react";
 import { useFarmer } from "@/hooks/useFarmers";
+import { Hex, parseEther } from "viem";
+import { toast } from "sonner";
+import { useWriteContract } from "@/utils/hedera";
+import { pledgeManagerAbi } from "@/abis/pledgeManager";
+import { Hbar, HbarUnit } from "@hashgraph/sdk";
+import { useAccount } from "wagmi";
+import pledgesService from "@/services/pledgesService";
 
 export default function PledgePage() {
-  const { farmerId } = useParams();
+  const { farmerAddress } = useParams();
   const navigate = useNavigate();
   const [pledgeAmount, setPledgeAmount] = useState("");
-  const [currency] = useState("HBAR"); // Only HBAR pledging allowed
+  const [currency] = useState("HBAR");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { farmer, loading } = useFarmer(farmerId || "");
+  const { farmer, loading } = useFarmer(farmerAddress as Hex);
+  const { writeContract } = useWriteContract();
+  const { address } = useAccount();
 
   if (loading) {
     return (
@@ -49,13 +58,33 @@ export default function PledgePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    // Simulate pledge submission
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      setIsSubmitting(true);
+
+      await writeContract({
+        abi: pledgeManagerAbi,
+        address: farmer.pledgeManager,
+        functionName: "pledge",
+        args: [address],
+        value: parseEther(pledgeAmount),
+        metaArgs: {
+          amount: Hbar.from(pledgeAmount, HbarUnit.Hbar),
+        },
+      });
+
+      await pledgesService.createPledge(address, {
+        farmerAddress: farmerAddress as Hex,
+        amount: Number(pledgeAmount),
+        currency: "HBAR",
+      });
+
       navigate("/pledger/dashboard");
-    }, 2000);
+    } catch (error) {
+      toast.error(error?.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -81,7 +110,7 @@ export default function PledgePage() {
           <CardHeader>
             <div className="flex items-center gap-4">
               <Avatar className="w-16 h-16">
-                <AvatarImage src={farmer.avatar} />
+                <AvatarImage src={"/images/avatar.png"} />
                 <AvatarFallback>
                   {farmer.name
                     .split(" ")
@@ -126,15 +155,15 @@ export default function PledgePage() {
 
             <div className="space-y-2 pt-4 border-t">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Total Loans</span>
+                <span className="text-muted-foreground">Total Borrowed</span>
                 <span className="font-semibold">
-                  ₦{farmer.totalLoans.toLocaleString()}
+                  ₦{farmer.totalBorrowed.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Repayment Rate</span>
+                <span className="text-muted-foreground">Total Repaid</span>
                 <span className="font-semibold text-success">
-                  {Math.round((farmer.totalRepaid / farmer.totalLoans) * 100)}%
+                  ₦{farmer.totalRepaid.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
@@ -206,7 +235,7 @@ export default function PledgePage() {
                       <div className="flex justify-between border-t pt-2">
                         <span>Farmer Incentive</span>
                         <span className="font-semibold text-primary">
-                          Potential farm produce/rewards
+                          Discount coupon
                         </span>
                       </div>
                     </div>

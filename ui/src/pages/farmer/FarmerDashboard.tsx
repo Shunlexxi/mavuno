@@ -1,53 +1,67 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  TrendingUp, 
-  DollarSign, 
-  Clock, 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  TrendingUp,
+  DollarSign,
+  Clock,
   CheckCircle,
   Plus,
-  MessageSquare
-} from 'lucide-react';
+  MessageSquare,
+} from "lucide-react";
+import { useFarmer } from "@/hooks/useFarmers";
+import { useAccount } from "wagmi";
+import { usePool } from "@/hooks/usePools";
+import { formatEther, formatUnits } from "viem";
 
 export default function FarmerDashboard() {
+  const { address } = useAccount();
+
+  const { farmer, loading } = useFarmer(address);
+  const { pool, loading: poolLoading } = usePool(
+    farmer?.preferredPool,
+    address
+  );
+
   const stats = [
     {
-      title: 'Current Loan',
-      value: '₦15,000',
-      change: '+5% from last month',
+      title: "Current Loan",
+      value: `₦${Number(formatUnits(pool?.borrow ?? 0n, 2)).toLocaleString()}`,
+      change: "Since date",
       icon: DollarSign,
-      color: 'text-primary'
+      color: "text-primary",
     },
     {
-      title: 'Total Repaid',
-      value: '₦40,000',
-      change: '+12% from last month',
+      title: "Total Repaid",
+      value: `₦${farmer?.totalRepaid?.toLocaleString()}`,
+      change: "Since date",
       icon: CheckCircle,
-      color: 'text-success'
+      color: "text-success",
     },
     {
-      title: 'Days Remaining',
-      value: '45',
-      change: 'Current loan period',
+      title: "Pledge Status",
+      value: pool?.active ? "Active" : "Inactive",
+      change: "Repay back loan to deactivate.",
       icon: Clock,
-      color: 'text-warning'
+      color: "text-warning",
     },
     {
-      title: 'Active Pledgers',
-      value: '8',
-      change: '+2 new this week',
+      title: "Total Pledges",
+      value: `${Number(formatEther(pool?.totalPledge ?? 0n)).toLocaleString()} HBAR`,
+      change: "Since date",
       icon: TrendingUp,
-      color: 'text-primary'
-    }
+      color: "text-primary",
+    },
   ];
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Welcome back, Sarah!</h1>
-          <p className="text-muted-foreground mt-2">Here's what's happening with your farm today.</p>
+          <h1 className="text-3xl font-bold">Welcome back, {farmer?.name}!</h1>
+          <p className="text-muted-foreground mt-2">
+            Here's what's happening with your farm today.
+          </p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="gap-2">
@@ -91,7 +105,9 @@ export default function FarmerDashboard() {
             <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
               <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
               <div className="flex-1">
-                <p className="text-sm">Your latest harvest update received 24 likes</p>
+                <p className="text-sm">
+                  Your latest harvest update received 24 likes
+                </p>
                 <p className="text-xs text-muted-foreground">2 hours ago</p>
               </div>
             </div>
@@ -119,15 +135,21 @@ export default function FarmerDashboard() {
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Loan Amount</span>
+                <span className="text-sm text-muted-foreground">
+                  Loan Amount
+                </span>
                 <span className="font-semibold">₦15,000</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Interest Rate</span>
+                <span className="text-sm text-muted-foreground">
+                  Interest Rate
+                </span>
                 <span className="font-semibold">5% APR</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Repayment Due</span>
+                <span className="text-sm text-muted-foreground">
+                  Repayment Due
+                </span>
                 <Badge variant="secondary">45 days</Badge>
               </div>
               <div className="flex justify-between items-center">

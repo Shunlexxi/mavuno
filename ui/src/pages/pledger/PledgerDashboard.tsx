@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   TrendingUp,
@@ -10,41 +9,44 @@ import {
   ArrowUpRight,
   Plus,
   Eye,
+  ArrowDownLeft,
 } from "lucide-react";
 import PledgeActionDialog from "@/components/dialogs/PledgeActionDialog";
-import { usePledges, usePledgeStats } from "@/hooks/usePledges";
+import { usePledges } from "@/hooks/usePledges";
+import { useAccount, useBalance } from "wagmi";
+import { formatEther } from "viem";
 
 export default function PledgerDashboard() {
-  const currentUserId = "current-user"; // In real app, this would come from auth
-  const { stats } = usePledgeStats(currentUserId);
-  const { pledges, loading } = usePledges({ pledgerId: currentUserId });
+  const { address } = useAccount();
+  const { data: balance } = useBalance({ address });
+  const { pledges, loading } = usePledges({ pledgerAddress: address });
 
   const dashboardStats = [
     {
       title: "Total Pledged",
-      value: `${stats?.totalPledged?.toLocaleString() || 0} HBAR`,
+      value: `${pledges?.reduce((a, p) => a + p?.amount, 0)?.toLocaleString() || 0} HBAR`,
       change: "Supporting rural farmers",
       icon: Heart,
       color: "text-primary",
     },
     {
       title: "Active Pledges",
-      value: stats?.activePledges?.toString() || "0",
+      value: pledges?.length || "0",
       change: "Currently backing farmers",
       icon: Users,
       color: "text-primary",
     },
     {
       title: "Locked Pledges",
-      value: stats?.lockedPledges?.toString() || "0",
+      value: pledges?.filter((p) => !p?.canWithdraw)?.length || "0",
       change: "Securing active loans",
       icon: TrendingUp,
       color: "text-warning",
     },
     {
       title: "Available to Pledge",
-      value: "2,500 HBAR",
-      change: "Ready for next cycle",
+      value: `${Number(formatEther(balance?.value ?? 0n)).toLocaleString()} HBAR`,
+      change: "Right in your wallet",
       icon: DollarSign,
       color: "text-success",
     },
@@ -118,68 +120,51 @@ export default function PledgerDashboard() {
                     <div className="h-4 bg-muted rounded w-20"></div>
                   </div>
                 ))
-              : pledges
-                  .filter((p) => p.status === "active")
-                  .map((pledge) => (
-                    <div
-                      key={pledge.id}
-                      className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage src={pledge.farmer.avatar} />
-                          <AvatarFallback>
-                            {pledge.farmer.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h4 className="font-semibold">
-                            {pledge.farmer.name}
-                          </h4>
-                          <p className="text-sm text-muted-foreground">
-                            {pledge.farmer.cropType}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold">
-                          {pledge.amount.toLocaleString()} {pledge.currency}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {pledge.status === "locked"
-                            ? "Securing Loan"
-                            : "Available"}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {pledge.status === "locked" && (
-                          <Badge variant="outline" className="text-warning">
-                            Locked Until{" "}
-                            {new Date(
-                              pledge.lockEndDate || ""
-                            ).toLocaleDateString()}
-                          </Badge>
-                        )}
-                        {pledge.canWithdraw && (
-                          <Badge variant="secondary" className="text-success">
-                            Can Withdraw
-                          </Badge>
-                        )}
-                        <PledgeActionDialog
-                          farmer={pledge.farmer}
-                          action="increase"
-                          currentPledge={pledge.amount}
-                        >
-                          <Button variant="ghost" size="sm">
-                            <ArrowUpRight className="w-4 h-4" />
-                          </Button>
-                        </PledgeActionDialog>
+              : pledges.map((pledge) => (
+                  <div
+                    key={pledge.id}
+                    className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={"/images/avatar.png"} />
+                        <AvatarFallback>
+                          {pledge.farmer.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h4 className="font-semibold">{pledge.farmer.name}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {pledge.farmer.cropType}
+                        </p>
                       </div>
                     </div>
-                  ))}
+                    <div className="text-right">
+                      <div className="font-semibold">
+                        {pledge.amount.toLocaleString()} {pledge.currency}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {pledge.canWithdraw && (
+                        <Button variant="ghost" size="sm">
+                          <ArrowDownLeft className="w-4 h-4" />
+                        </Button>
+                      )}
+                      <PledgeActionDialog
+                        farmer={pledge.farmer}
+                        action="increase"
+                        currentPledge={Number(pledge.amount)}
+                      >
+                        <Button variant="ghost" size="sm">
+                          <ArrowUpRight className="w-4 h-4" />
+                        </Button>
+                      </PledgeActionDialog>
+                    </div>
+                  </div>
+                ))}
           </CardContent>
         </Card>
 
@@ -194,58 +179,12 @@ export default function PledgerDashboard() {
               Find New Farmers
             </Button>
             <Button className="w-full justify-start gap-3" variant="outline">
-              <Plus className="w-4 h-4" />
-              Increase Pledge
-            </Button>
-            <Button className="w-full justify-start gap-3" variant="outline">
-              <DollarSign className="w-4 h-4" />
-              Withdraw HBAR
-            </Button>
-            <Button className="w-full justify-start gap-3" variant="outline">
               <Users className="w-4 h-4" />
               View Pool Positions
             </Button>
           </CardContent>
         </Card>
       </div>
-
-      {/* Recent Activity */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-              <div className="w-2 h-2 bg-success rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm">
-                  HBAR pledge secured loan for Sarah Okafor - 5,000 HBAR
-                </p>
-                <p className="text-xs text-muted-foreground">2 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-              <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm">
-                  New update from John Adebayo - Harvest milestone achieved
-                </p>
-                <p className="text-xs text-muted-foreground">1 day ago</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-              <div className="w-2 h-2 bg-warning rounded-full mt-2"></div>
-              <div className="flex-1">
-                <p className="text-sm">
-                  Pledge available for withdrawal - 3,000 HBAR unlocked
-                </p>
-                <p className="text-xs text-muted-foreground">3 days ago</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

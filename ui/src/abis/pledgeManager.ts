@@ -1,4 +1,4 @@
-export const pledgeManager = [
+export const pledgeManagerAbi = [
   {
     inputs: [
       {

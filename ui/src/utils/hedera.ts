@@ -26,9 +26,10 @@ export function useWriteContract() {
     address: Hex;
     abi: abi;
     functionName: functionName;
+    value?: bigint;
     metaArgs?: Partial<{
       gas: Hbar | number;
-      amount: number;
+      amount: Hbar | number;
       maxTransactionFee: Hbar | number;
       nodeAccountIds: AccountId[];
       transactionId: TransactionId;
@@ -69,9 +70,10 @@ export const writeContract = async <
     address: Hex;
     abi: abi;
     functionName: functionName;
+    value?: bigint;
     metaArgs?: Partial<{
       gas: Hbar | number;
-      amount: number;
+      amount: Hbar | number;
       maxTransactionFee: Hbar | number;
       nodeAccountIds: AccountId[];
       transactionId: TransactionId;
@@ -81,7 +83,7 @@ export const writeContract = async <
     args: args;
   };
 }): Promise<WriteContractReturnType> => {
-  const { address, abi, functionName, metaArgs, args } = parameters;
+  const { address, abi, functionName, metaArgs, args, value } = parameters;
 
   return await wagmi_writeContract(config, {
     __mode: "prepared",
@@ -89,6 +91,7 @@ export const writeContract = async <
     address,
     functionName,
     args,
+    value,
     ...(metaArgs as any),
   });
 };

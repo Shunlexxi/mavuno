@@ -22,9 +22,12 @@ import { useNavigate } from "react-router-dom";
 
 import { useWriteContract } from "@/utils/hedera";
 import { farmerRegistryAbi } from "@/abis/farmerRegistry";
-import { Farmer } from "@/types";
-import { Contracts } from "@/utils/constants";
-import { Hex } from "viem";
+import { Contracts, publicClient } from "@/utils/constants";
+import { Hex, zeroAddress } from "viem";
+import { useFarmer, useFarmers } from "@/hooks/useFarmers";
+import { useAccount } from "wagmi";
+import { toast } from "sonner";
+import farmersService from "@/services/farmersService";
 
 interface FarmerAuthProps {
   mode: "login" | "register";
@@ -43,33 +46,91 @@ export default function FarmerAuth({ mode }: FarmerAuthProps) {
   const [pool, setPool] = useState<Hex | undefined>(undefined);
 
   const { writeContract } = useWriteContract();
+  const { createFarmer } = useFarmers();
+  const { address } = useAccount();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      setIsLoading(true);
+    if (!address) {
+      return toast.error("Connect your wallet");
+    }
 
-      const txHash = await writeContract({
-        abi: farmerRegistryAbi,
-        address: Contracts.FarmerRegistry,
-        args: [
-          JSON.stringify({
-            name,
-            email,
-            location,
-            farmSize,
-            cropType,
-            description,
-          }),
-          pool,
-        ],
-        functionName: "registerFarmer",
-      });
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
+    if (mode === "register") {
+      try {
+        setIsLoading(true);
+
+        const createHash = await writeContract({
+          abi: farmerRegistryAbi,
+          address: Contracts.FarmerRegistry,
+          args: [
+            JSON.stringify({
+              name,
+              email,
+              location,
+              farmSize,
+              cropType,
+              description,
+            }),
+            pool,
+          ],
+          functionName: "registerFarmer",
+        });
+
+        await publicClient.waitForTransactionReceipt({ hash: createHash });
+
+        const pledgeManager = (await publicClient.readContract({
+          abi: farmerRegistryAbi,
+          address: Contracts.FarmerRegistry,
+          functionName: "farmerToManager",
+          args: [address],
+          authorizationList: undefined,
+        })) as Hex;
+
+        await createFarmer(address, pledgeManager, {
+          name,
+          email,
+          location,
+          farmSize,
+          cropType,
+          description,
+          preferredPool: pool,
+        });
+
+        navigate("/farmer/dashboard");
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      try {
+        setIsLoading(true);
+
+        const farmer = await farmersService.getFarmerByAddress(address);
+
+        if (farmer.success) {
+          navigate("/farmer/dashboard");
+        } else {
+          return toast.error("Account not found.");
+        }
+
+        const pledgeManager = (await publicClient.readContract({
+          abi: farmerRegistryAbi,
+          address: Contracts.FarmerRegistry,
+          functionName: "farmerToManager",
+          args: [address],
+          authorizationList: undefined,
+        })) as Hex;
+
+        if (pledgeManager === zeroAddress) {
+          return toast.error("Farmer not found in registry.");
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -149,10 +210,18 @@ export default function FarmerAuth({ mode }: FarmerAuthProps) {
                           <SelectValue placeholder="Select size" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1-2">1-2 hectares</SelectItem>
-                          <SelectItem value="3-5">3-5 hectares</SelectItem>
-                          <SelectItem value="6-10">6-10 hectares</SelectItem>
-                          <SelectItem value="10+">10+ hectares</SelectItem>
+                          <SelectItem value="1-2 hectares">
+                            1-2 hectares
+                          </SelectItem>
+                          <SelectItem value="3-5 hectares">
+                            3-5 hectares
+                          </SelectItem>
+                          <SelectItem value="6-10 hectares">
+                            6-10 hectares
+                          </SelectItem>
+                          <SelectItem value="10+ hectares">
+                            10+ hectares
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -164,12 +233,13 @@ export default function FarmerAuth({ mode }: FarmerAuthProps) {
                           <SelectValue placeholder="Select crop" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="maize">Maize</SelectItem>
-                          <SelectItem value="rice">Rice</SelectItem>
-                          <SelectItem value="cassava">Cassava</SelectItem>
-                          <SelectItem value="yam">Yam</SelectItem>
-                          <SelectItem value="beans">Beans</SelectItem>
-                          <SelectItem value="soybean">Soybean</SelectItem>
+                          <SelectItem value="Maize">Maize</SelectItem>
+                          <SelectItem value="Rice">Rice</SelectItem>
+                          <SelectItem value="Cassava">Cassava</SelectItem>
+                          <SelectItem value="Yam">Yam</SelectItem>
+                          <SelectItem value="Beans">Beans</SelectItem>
+                          <SelectItem value="Soybean">Soybean</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

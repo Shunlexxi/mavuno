@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Farmer } from "../types";
 import { farmersService } from "../services/farmersService";
 import { FarmerFilters, CreateFarmerRequest } from "../types/api";
+import { Hex } from "viem";
 
 interface UseFarmersState {
   farmers: Farmer[];
@@ -11,10 +12,10 @@ interface UseFarmersState {
 
 interface UseFarmersReturn extends UseFarmersState {
   refetch: () => Promise<void>;
-  createFarmer: (farmerData: CreateFarmerRequest) => Promise<Farmer | null>;
-  updateFarmer: (
-    id: string,
-    updates: Partial<Farmer>
+  createFarmer: (
+    address: Hex,
+    pledgeManager: Hex,
+    farmerData: CreateFarmerRequest
   ) => Promise<Farmer | null>;
 }
 
@@ -27,8 +28,6 @@ export function useFarmers(filters?: FarmerFilters): UseFarmersReturn {
 
   const fetchFarmers = useCallback(async () => {
     try {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-
       const response = await farmersService.getFarmers(filters);
 
       if (response.success) {
@@ -55,13 +54,19 @@ export function useFarmers(filters?: FarmerFilters): UseFarmersReturn {
   }, [filters]);
 
   const createFarmer = useCallback(
-    async (farmerData: CreateFarmerRequest): Promise<Farmer | null> => {
+    async (
+      address: Hex,
+      pledgeManager: Hex,
+      farmerData: CreateFarmerRequest
+    ): Promise<Farmer | null> => {
       try {
-        const response = await farmersService.createFarmer(farmerData);
+        const response = await farmersService.createFarmer(
+          address,
+          pledgeManager,
+          farmerData
+        );
 
         if (response.success) {
-          // Refresh the farmers list
-          await fetchFarmers();
           return response.data;
         } else {
           setState((prev) => ({
@@ -77,40 +82,6 @@ export function useFarmers(filters?: FarmerFilters): UseFarmersReturn {
         return null;
       }
     },
-    [fetchFarmers]
-  );
-
-  const updateFarmer = useCallback(
-    async (
-      address: string,
-      updates: Partial<Farmer>
-    ): Promise<Farmer | null> => {
-      try {
-        const response = await farmersService.updateFarmer(address, updates);
-
-        if (response.success) {
-          // Update the farmers list locally
-          setState((prev) => ({
-            ...prev,
-            farmers: prev.farmers.map((farmer) =>
-              farmer.address === address ? response.data : farmer
-            ),
-          }));
-          return response.data;
-        } else {
-          setState((prev) => ({
-            ...prev,
-            error: response.message || "Failed to update farmer",
-          }));
-          return null;
-        }
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Failed to update farmer";
-        setState((prev) => ({ ...prev, error: errorMessage }));
-        return null;
-      }
-    },
     []
   );
 
@@ -122,7 +93,6 @@ export function useFarmers(filters?: FarmerFilters): UseFarmersReturn {
     ...state,
     refetch: fetchFarmers,
     createFarmer,
-    updateFarmer,
   };
 }
 
@@ -136,7 +106,7 @@ interface UseFarmerReturn extends UseFarmerState {
   refetch: () => Promise<void>;
 }
 
-export function useFarmer(id: string): UseFarmerReturn {
+export function useFarmer(address: Hex): UseFarmerReturn {
   const [state, setState] = useState<UseFarmerState>({
     farmer: null,
     loading: true,
@@ -144,12 +114,12 @@ export function useFarmer(id: string): UseFarmerReturn {
   });
 
   const fetchFarmer = useCallback(async () => {
-    if (!id) return;
+    if (!address) return;
 
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
-      const response = await farmersService.getFarmerById(id);
+      const response = await farmersService.getFarmerByAddress(address);
 
       if (response.success) {
         setState((prev) => ({
@@ -172,7 +142,7 @@ export function useFarmer(id: string): UseFarmerReturn {
         loading: false,
       }));
     }
-  }, [id]);
+  }, [address]);
 
   useEffect(() => {
     fetchFarmer();

@@ -40,7 +40,7 @@ contract Fiat is
         if (underlying != address(0)) revert TokenAlreadyCreated();
 
         IHederaTokenService.TokenKey[]
-            memory keys = new IHederaTokenService.TokenKey[](4);
+            memory keys = new IHederaTokenService.TokenKey[](3);
 
         // Supply key - contract can mint/burn
         keys[0] = getSingleKey(
@@ -59,13 +59,6 @@ contract Fiat is
         // Pause key - contract can pause token
         keys[2] = getSingleKey(
             KeyType.PAUSE,
-            KeyValueType.CONTRACT_ID,
-            address(this)
-        );
-
-        // KYC key - contract can grant/revoke KYC (if needed)
-        keys[3] = getSingleKey(
-            KeyType.KYC,
             KeyValueType.CONTRACT_ID,
             address(this)
         );

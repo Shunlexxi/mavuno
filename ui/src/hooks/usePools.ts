@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { Pool, PoolPosition } from "@/types";
+import { Pool } from "@/types";
 import { poolsService } from "@/services/poolsService";
-import { Hex } from "viem";
+import { Hex, zeroAddress } from "viem";
 
 interface UsePoolsState {
   pools: Pool[];
@@ -10,25 +10,25 @@ interface UsePoolsState {
 }
 
 interface UsePoolsReturn extends UsePoolsState {
-  refetch: () => Promise<void>;
+  refetch: (account: Hex) => Promise<void>;
   generateChartData: (
     supplyApy: number,
     days?: number
   ) => { day: number; apy: number }[];
 }
 
-export function usePools(): UsePoolsReturn {
+export function usePools(account: Hex): UsePoolsReturn {
   const [state, setState] = useState<UsePoolsState>({
     pools: [],
     loading: true,
     error: null,
   });
 
-  const fetchPools = useCallback(async () => {
+  const fetchPools = useCallback(async (account: Hex) => {
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
-      const response = await poolsService.getPools();
+      const response = await poolsService.getPools(account);
 
       if (response.success) {
         setState((prev) => ({
@@ -61,8 +61,8 @@ export function usePools(): UsePoolsReturn {
   );
 
   useEffect(() => {
-    fetchPools();
-  }, [fetchPools]);
+    fetchPools(account);
+  }, [account, fetchPools]);
 
   return {
     ...state,
@@ -81,7 +81,10 @@ interface UsePoolReturn extends UsePoolState {
   refetch: () => Promise<void>;
 }
 
-export function usePool(address: Hex): UsePoolReturn {
+export function usePool(
+  address: Hex,
+  account: Hex = zeroAddress
+): UsePoolReturn {
   const [state, setState] = useState<UsePoolState>({
     pool: null,
     loading: true,
@@ -94,7 +97,7 @@ export function usePool(address: Hex): UsePoolReturn {
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
-      const response = await poolsService.getPoolByAddress(address);
+      const response = await poolsService.getPoolByAddress(address, account);
 
       if (response.success) {
         setState((prev) => ({
@@ -126,69 +129,5 @@ export function usePool(address: Hex): UsePoolReturn {
   return {
     ...state,
     refetch: fetchPool,
-  };
-}
-
-interface UsePoolPositionsState {
-  position: PoolPosition | null;
-  loading: boolean;
-  error: string | null;
-}
-
-interface UsePoolPositionsReturn extends UsePoolPositionsState {
-  refetch: () => Promise<void>;
-}
-
-export function usePoolPositions(
-  address: Hex,
-  account: Hex
-): UsePoolPositionsReturn {
-  const [state, setState] = useState<UsePoolPositionsState>({
-    position: null,
-    loading: true,
-    error: null,
-  });
-
-  const fetchPositions = useCallback(async () => {
-    if (!address || !account) return;
-
-    try {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-
-      const response = await poolsService.getAccountPoolPosition(
-        address,
-        account
-      );
-
-      if (response.success) {
-        setState((prev) => ({
-          ...prev,
-          position: response.data,
-          loading: false,
-        }));
-      } else {
-        setState((prev) => ({
-          ...prev,
-          error: response.message || "Failed to fetch positions",
-          loading: false,
-        }));
-      }
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        error:
-          error instanceof Error ? error.message : "Unknown error occurred",
-        loading: false,
-      }));
-    }
-  }, [address, account]);
-
-  useEffect(() => {
-    fetchPositions();
-  }, [fetchPositions]);
-
-  return {
-    ...state,
-    refetch: fetchPositions,
   };
 }

@@ -1,3 +1,5 @@
+import { Hex } from "viem";
+
 // API Request/Response Types
 export interface ApiResponse<T> {
   data: T;
@@ -22,31 +24,32 @@ export interface CreateFarmerRequest {
   farmSize: string;
   cropType: string;
   description: string;
-  preferredPool: 'NGN' | 'CEDI' | 'RAND';
+  preferredPool: Hex;
 }
 
 export interface CreatePledgeRequest {
-  farmerId: string;
+  farmerAddress: string;
   amount: number;
-  currency: 'HBAR';
+  currency: "HBAR";
 }
 
 export interface UpdatePledgeRequest {
   pledgeId: string;
   amount: number;
-  action: 'increase' | 'withdraw';
+  action: "increase" | "withdraw";
 }
 
 export interface CreateTimelinePostRequest {
+  pledgerAddress?: string;
   content: string;
-  type: 'update' | 'milestone' | 'harvest' | 'request';
+  type: "update" | "milestone" | "harvest" | "request";
   images?: string[];
 }
 
 export interface PoolActionRequest {
   poolId: string;
   amount: number;
-  action: 'supply' | 'borrow' | 'withdraw' | 'repay';
+  action: "supply" | "borrow" | "withdraw" | "repay";
 }
 
 // Filter Types
@@ -58,14 +61,13 @@ export interface FarmerFilters {
 }
 
 export interface TimelineFilters {
-  farmerId?: string;
+  farmerAddress?: string;
   type?: string;
   limit?: number;
   offset?: number;
 }
 
 export interface PledgeFilters {
-  pledgerId?: string;
-  farmerId?: string;
-  status?: 'active' | 'withdrawn' | 'locked';
+  pledgerAddress?: string;
+  farmerAddress?: string;
 }

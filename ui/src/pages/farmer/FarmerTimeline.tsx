@@ -19,7 +19,7 @@ import { useTimeline } from "@/hooks/useTimeline";
 
 export default function FarmerTimeline() {
   const [newPost, setNewPost] = useState("");
-  const { posts, loading, updatePost } = useTimeline();
+  const { posts, loading } = useTimeline();
 
   const getPostTypeColor = (type: string) => {
     switch (type) {
@@ -127,7 +127,7 @@ export default function FarmerTimeline() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={post.farmer.avatar} />
+                        <AvatarImage src={"/images/avatar.png"} />
                         <AvatarFallback>
                           {post.farmer.name
                             .split(" ")
@@ -171,8 +171,8 @@ export default function FarmerTimeline() {
                         post.images.length === 1
                           ? "grid-cols-1"
                           : post.images.length === 2
-                          ? "grid-cols-2"
-                          : "grid-cols-3"
+                            ? "grid-cols-2"
+                            : "grid-cols-3"
                       }`}
                     >
                       {post.images.map((image, index) => (
@@ -195,9 +195,7 @@ export default function FarmerTimeline() {
                       variant="ghost"
                       size="sm"
                       className="gap-2 text-muted-foreground hover:text-primary"
-                      onClick={() =>
-                        updatePost(post.id, { likes: post.likes + 1 })
-                      }
+                      onClick={() => (post.likes = post.likes + 1)}
                     >
                       <Heart className="w-4 h-4" />
                       {post.likes} Likes
