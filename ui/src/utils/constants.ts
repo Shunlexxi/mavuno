@@ -26,6 +26,9 @@ export const Contracts = {
   NairaPool: "0x6651FA2d7128351e07Cb012B32174CAD630aB19F" as Hex,
   CediPool: "0x9b3203d2e0D9D4608B22d505d41c667E50683801" as Hex,
   RandPool: "0x0b61B3a9a233AcF5ddd9e81c0C555978Bba531aB" as Hex,
+  CediFiatUnderlyingId: "",
+  RandFiatUnderlyingId: "",
+  NairaFiatUnderlyingId: "",
 };
 
 export const Symbols: Record<Hex, string> = {};

@@ -14,22 +14,26 @@ export class PoolsService {
     let currency: "NGN" | "CEDI" | "RAND";
     let fiat: Hex;
     let fiatUnderlying: Hex;
+    let fiatUnderlyingId: string;
 
     switch (address) {
       case Contracts.CediPool:
         currency = "CEDI";
         fiat = Contracts.CediFiat;
         fiatUnderlying = Contracts.CediFiatUnderlying;
+        fiatUnderlyingId = Contracts.CediFiatUnderlyingId;
         break;
       case Contracts.RandPool:
         currency = "RAND";
         fiat = Contracts.RandFiat;
         fiatUnderlying = Contracts.RandFiatUnderlying;
+        fiatUnderlyingId = Contracts.RandFiatUnderlyingId;
         break;
       default:
         currency = "NGN";
         fiat = Contracts.NairaFiat;
         fiatUnderlying = Contracts.NairaFiatUnderlying;
+        fiatUnderlyingId = Contracts.NairaFiatUnderlyingId;
     }
 
     try {
@@ -140,6 +144,7 @@ export class PoolsService {
         address,
         fiat,
         fiatUnderlying,
+        fiatUnderlyingId,
         currency,
         totalLiquidity,
         totalBorrowed,
@@ -161,6 +166,7 @@ export class PoolsService {
         currency,
         fiat,
         fiatUnderlying,
+        fiatUnderlyingId,
         totalLiquidity: 0n,
         totalBorrowed: 0n,
         supplyAPY: 0n,

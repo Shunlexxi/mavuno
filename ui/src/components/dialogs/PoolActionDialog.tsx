@@ -28,14 +28,9 @@ import { hederaTestnet } from "viem/chains";
 import { useAccount } from "wagmi";
 import { fiatAbi } from "@/abis/fiat";
 import { useWriteContract } from "@/utils/hedera";
-import {
-  doc,
-  updateDoc,
-  getFirestore,
-  increment,
-  setDoc,
-} from "firebase/firestore";
+import { doc, updateDoc, getFirestore, increment } from "firebase/firestore";
 import timelineService from "@/services/timelineService";
+import { AccountId, Client, TokenId } from "@hashgraph/sdk";
 
 interface PoolActionDialogProps {
   pool: Pool;
@@ -49,6 +44,7 @@ export default function PoolActionDialog({
   children,
 }: PoolActionDialogProps) {
   const [amount, setAmount] = useState("");
+  const [balance, setBalance] = useState(0);
   const [borrowable, setBorrowable] = useState(0);
   const [email, setEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -215,6 +211,11 @@ export default function PoolActionDialog({
               chain: hederaTestnet,
               account: adminClient.account,
             });
+
+            await timelineService.createTimelinePost(address, {
+              content: `You supplied ${Symbols[pool.address]}${amount} from bank.`,
+              type: "activity",
+            });
           } else {
             toast.loading("Repaying...");
 
@@ -230,11 +231,11 @@ export default function PoolActionDialog({
             const db = getFirestore();
 
             await timelineService.createTimelinePost(address, {
-              content: `You repaid ${Symbols[pool.address]}${amount} from back.`,
+              content: `You repaid ${Symbols[pool.address]}${amount} from bank.`,
               type: "activity",
             });
 
-            await updateDoc(doc(db, "farmers"), address, {
+            await updateDoc(doc(db, "farmers", address), {
               totalRepaid: increment(Number(amount)),
             });
           }
@@ -264,7 +265,9 @@ export default function PoolActionDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!localStorage.getItem(`associated-${pool.fiatUnderlying}`)) {
+    if (!localStorage.getItem(`associated-${address}-${pool.fiatUnderlying}`)) {
+      toast.loading("Associating...");
+
       const hash = await writeContract({
         abi: [
           {
@@ -286,7 +289,10 @@ export default function PoolActionDialog({
         args: [],
       });
 
-      localStorage.setItem(`associated-${pool.fiatUnderlying}`, hash);
+      localStorage.setItem(
+        `associated-${address}-${pool.fiatUnderlying}`,
+        hash
+      );
     }
 
     if (action === "withdraw") {
@@ -298,6 +304,11 @@ export default function PoolActionDialog({
           address: pool.address,
           functionName: "withdrawSupply",
           args: [parseUnits(amount, 2)],
+        });
+
+        await timelineService.createTimelinePost(address, {
+          content: `You withdraw ${Symbols[pool.address]}${amount} .`,
+          type: "activity",
         });
       } catch (error) {
         toast(error?.message);
@@ -318,6 +329,11 @@ export default function PoolActionDialog({
           functionName: "supply",
           args: [parseUnits(amount, 2), address],
         });
+
+        await timelineService.createTimelinePost(address, {
+          content: `You supplied ${Symbols[pool.address]}${amount} .`,
+          type: "activity",
+        });
       } catch (error) {
         toast(error?.message);
       } finally {
@@ -337,8 +353,13 @@ export default function PoolActionDialog({
         });
 
         const db = getFirestore();
-        await updateDoc(doc(db, "farmers"), address, {
+        await updateDoc(doc(db, "farmers", address), {
           totalBorrowed: increment(Number(amount)),
+        });
+
+        await timelineService.createTimelinePost(address, {
+          content: `You borrowed ${Symbols[pool.address]}${amount} .`,
+          type: "activity",
         });
       } catch (error) {
         toast(error?.message);
@@ -361,7 +382,7 @@ export default function PoolActionDialog({
         });
 
         const db = getFirestore();
-        await updateDoc(doc(db, "farmers"), address, {
+        await updateDoc(doc(db, "farmers", address), {
           totalRepaid: increment(Number(amount)),
         });
 
@@ -407,9 +428,30 @@ export default function PoolActionDialog({
     }
   }, [address, pool]);
 
+  const getBalance = useCallback(async () => {
+    try {
+      const accountInfo = await fetch(
+        `https://testnet.mirrornode.hedera.com/api/v1/accounts/${address}`
+      );
+
+      const info = await accountInfo.json();
+      const token = (info?.balance?.tokens ?? []).find(
+        (t) => t.token_id == pool.fiatUnderlyingId
+      );
+
+      setBalance(Number(formatUnits(token?.balance ?? 0n, 2)));
+    } catch (error) {
+      console.log(error);
+    }
+  }, [address, pool]);
+
   useEffect(() => {
     getBorrowable();
   }, [getBorrowable]);
+
+  useEffect(() => {
+    getBalance();
+  }, [getBalance]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -473,6 +515,14 @@ export default function PoolActionDialog({
                 <span>Max Borrowable</span>
                 <span className="font-semibold">
                   {borrowable.toLocaleString()} {pool.currency}
+                </span>
+              </div>
+            )}
+            {action === "supply" && (
+              <div className="flex justify-between text-sm">
+                <span>Available Balance</span>
+                <span className="font-semibold">
+                  {balance.toLocaleString()} {pool.currency}
                 </span>
               </div>
             )}

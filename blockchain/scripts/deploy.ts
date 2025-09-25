@@ -50,9 +50,9 @@ async function main() {
   console.log("Oracle deployed at:", await oracle.getAddress());
 
   // Initialize oracle
-  await oracle.setfiatPerHbar(await ngn.getAddress(), 19_000);
-  await oracle.setfiatPerHbar(await cedi.getAddress(), 15_000);
-  await oracle.setfiatPerHbar(await rand.getAddress(), 17_000);
+  await oracle.setfiatPerHbar(await ngn.getAddress(), 1_900_000);
+  await oracle.setfiatPerHbar(await cedi.getAddress(), 1_500_000);
+  await oracle.setfiatPerHbar(await rand.getAddress(), 1_700_000);
 
   // --- Deploy Farmer's Registry ---
   const FarmerRegistry = await ethers.getContractFactory("FarmerRegistry");
