@@ -117,8 +117,6 @@ export function useFarmer(address: Hex): UseFarmerReturn {
     if (!address) return;
 
     try {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-
       const response = await farmersService.getFarmerByAddress(address);
 
       if (response.success) {

@@ -30,18 +30,19 @@ import { fiatAbi } from "@/abis/fiat";
 import { useWriteContract } from "@/utils/hedera";
 import { doc, updateDoc, getFirestore, increment } from "firebase/firestore";
 import timelineService from "@/services/timelineService";
-import { AccountId, Client, TokenId } from "@hashgraph/sdk";
 
 interface PoolActionDialogProps {
   pool: Pool;
   action: "supply" | "borrow" | "withdraw" | "repay";
   children: React.ReactNode;
+  onClose: () => void;
 }
 
 export default function PoolActionDialog({
   pool,
   action,
   children,
+  onClose,
 }: PoolActionDialogProps) {
   const [amount, setAmount] = useState("");
   const [balance, setBalance] = useState(0);
@@ -248,6 +249,7 @@ export default function PoolActionDialog({
         setEmail("");
         setIsOpen(false);
         setIsProcessingWithBank(false);
+        onClose();
       },
       onCancel: () => {
         setIsOpen(true);
@@ -310,6 +312,8 @@ export default function PoolActionDialog({
           content: `You withdraw ${Symbols[pool.address]}${amount} .`,
           type: "activity",
         });
+
+        onClose();
       } catch (error) {
         toast(error?.message);
       } finally {
@@ -334,6 +338,8 @@ export default function PoolActionDialog({
           content: `You supplied ${Symbols[pool.address]}${amount} .`,
           type: "activity",
         });
+
+        onClose();
       } catch (error) {
         toast(error?.message);
       } finally {
@@ -361,6 +367,8 @@ export default function PoolActionDialog({
           content: `You borrowed ${Symbols[pool.address]}${amount} .`,
           type: "activity",
         });
+
+        onClose();
       } catch (error) {
         toast(error?.message);
       } finally {
@@ -390,6 +398,8 @@ export default function PoolActionDialog({
           content: `You repaid ${Symbols[pool.address]}${amount}`,
           type: "activity",
         });
+
+        onClose();
       } catch (error) {
         toast(error?.message);
       } finally {

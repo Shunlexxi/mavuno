@@ -31,7 +31,12 @@ export default function Landing() {
   const navigate = useNavigate();
   const { address } = useAccount();
   const { farmer } = useFarmer(address);
-  const { pools, loading: poolsLoading, generateChartData } = usePools(address);
+  const {
+    pools,
+    loading: poolsLoading,
+    generateChartData,
+    refetch,
+  } = usePools(address);
 
   const features = [
     {
@@ -275,7 +280,13 @@ export default function Landing() {
                         </div>
                         {pool.address !== farmer?.preferredPool && (
                           <div className="grid grid-cols-2 gap-2 pt-2">
-                            <PoolActionDialog pool={pool} action="supply">
+                            <PoolActionDialog
+                              pool={pool}
+                              action="supply"
+                              onClose={() => {
+                                refetch(address);
+                              }}
+                            >
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -285,7 +296,13 @@ export default function Landing() {
                                 Supply
                               </Button>
                             </PoolActionDialog>
-                            <PoolActionDialog pool={pool} action="withdraw">
+                            <PoolActionDialog
+                              pool={pool}
+                              action="withdraw"
+                              onClose={() => {
+                                refetch(address);
+                              }}
+                            >
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -299,7 +316,13 @@ export default function Landing() {
                         )}
                         {pool.address === farmer?.preferredPool && (
                           <div className="grid grid-cols-2 gap-2 pt-2">
-                            <PoolActionDialog pool={pool} action="borrow">
+                            <PoolActionDialog
+                              pool={pool}
+                              action="borrow"
+                              onClose={() => {
+                                refetch(address);
+                              }}
+                            >
                               <Button
                                 variant="secondary"
                                 size="sm"
@@ -310,7 +333,13 @@ export default function Landing() {
                               </Button>
                             </PoolActionDialog>
 
-                            <PoolActionDialog pool={pool} action="repay">
+                            <PoolActionDialog
+                              pool={pool}
+                              action="repay"
+                              onClose={() => {
+                                refetch(address);
+                              }}
+                            >
                               <Button
                                 variant="secondary"
                                 size="sm"

@@ -26,8 +26,6 @@ export function usePools(account: Hex): UsePoolsReturn {
 
   const fetchPools = useCallback(async (account: Hex) => {
     try {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-
       const response = await poolsService.getPools(account);
 
       if (response.success) {
