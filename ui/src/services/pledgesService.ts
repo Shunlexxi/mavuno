@@ -149,7 +149,7 @@ export class PledgesService {
 
       if (docSnap.exists()) {
         await updateDoc(doc(db, "pledges", pledge.id), {
-          amount: increment(-pledge.amount),
+          amount: increment(-1 * pledge.amount),
           farmer: {
             name: farmerResponse.data.name,
             address: farmerResponse.data.address,

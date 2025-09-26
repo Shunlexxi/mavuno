@@ -19,7 +19,7 @@ import { useWriteContract } from "@/utils/hedera";
 import { useAccount } from "wagmi";
 import { pledgeManagerAbi } from "@/abis/pledgeManager";
 import { Hbar, HbarUnit } from "@hashgraph/sdk";
-import { parseEther } from "viem";
+import { parseUnits } from "viem";
 import pledgesService from "@/services/pledgesService";
 import { publicClient } from "@/utils/constants";
 
@@ -100,7 +100,7 @@ export default function PledgeActionDialog({
           address: farmer.pledgeManager,
           functionName: "pledge",
           args: [address],
-          value: parseEther(amount),
+          value: parseUnits(amount, 8),
           metaArgs: {
             amount: Hbar.from(amount, HbarUnit.Hbar),
           },
@@ -128,7 +128,7 @@ export default function PledgeActionDialog({
           abi: pledgeManagerAbi,
           address: farmer.pledgeManager,
           functionName: "withdraw",
-          args: [parseEther(amount)],
+          args: [parseUnits(amount, 8)],
         });
 
         await pledgesService.decreasePledge(address, {
