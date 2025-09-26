@@ -11,7 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Wallet, TrendingUp, AlertTriangle, DollarSign } from "lucide-react";
+import {
+  Wallet,
+  TrendingUp,
+  AlertTriangle,
+  DollarSign,
+  DropletsIcon,
+} from "lucide-react";
 import { Pool } from "@/types";
 import { toast } from "sonner";
 import Paystack from "@paystack/inline-js";
@@ -93,6 +99,31 @@ export default function PoolActionDialog({
 
   const config = actionConfig[action];
   const IconComponent = config.icon;
+
+  const mint = async () => {
+    try {
+      toast.loading("Onramping...");
+
+      const mintHash = await adminClient.writeContract({
+        abi: fiatAbi,
+        address: pool.fiat,
+        functionName: "mint",
+        args: [address, parseUnits("1000", 2)],
+        chain: hederaTestnet,
+        account: adminClient.account,
+      });
+
+      await publicClient.waitForTransactionReceipt({
+        hash: mintHash,
+      });
+
+      getBalance();
+
+      toast.success("Minted");
+    } catch (error) {
+      toast.error(error?.message);
+    }
+  };
 
   const approve = async () => {
     toast.loading("Approving...");
@@ -469,8 +500,9 @@ export default function PoolActionDialog({
       );
 
       const info = await accountInfo.json();
-      const token = (info?.balance?.tokens ?? []).find(
-        (t) => t.token_id == pool.fiatUnderlyingId
+
+      const token = (info?.balance?.tokens || []).find(
+        (t) => t.token_id.toString() == pool.fiatUnderlyingId
       );
 
       setBalance(Number(formatUnits(token?.balance ?? 0n, 2)));
@@ -555,7 +587,7 @@ export default function PoolActionDialog({
             )}
             {action === "supply" && (
               <div className="flex justify-between text-sm">
-                <span>Available Balance</span>
+                <span>Wallet Balance</span>
                 <span className="font-semibold">
                   {balance.toLocaleString()} {Symbols[pool.address]}
                 </span>
@@ -601,13 +633,19 @@ export default function PoolActionDialog({
             </div>
           )}
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isProcessing || isProcessingWithBank || !amount}
-          >
-            {isProcessing ? "Processing..." : `${config.buttonText} `}
-          </Button>
+          <div className="flex gap-1">
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isProcessing || isProcessingWithBank || !amount}
+            >
+              {isProcessing ? "Processing..." : `${config.buttonText} `}
+            </Button>
+            <Button onClick={mint} variant="outline">
+              <DropletsIcon />
+              Mint
+            </Button>
+          </div>
 
           {/* Email Input */}
           {config.buttonText2 && (
