@@ -25,12 +25,16 @@ import { usePools } from "../hooks/usePools";
 import { formatUnits } from "viem";
 import { MAX_BPS_POW, Symbols } from "@/utils/constants";
 import { useAccount } from "wagmi";
-import { useFarmer } from "@/hooks/useFarmers";
+import { useFarmer, useFarmers } from "@/hooks/useFarmers";
+import { usePledges } from "@/hooks/usePledges";
 
 export default function Landing() {
   const navigate = useNavigate();
   const { address } = useAccount();
   const { farmer } = useFarmer(address);
+  const { farmers } = useFarmers();
+  const { pledges } = usePledges();
+
   const {
     pools,
     loading: poolsLoading,
@@ -413,11 +417,15 @@ export default function Landing() {
               <div className="text-muted-foreground">Backed Loans</div>
             </div>
             <div className="fade-in">
-              <div className="text-4xl font-bold text-primary mb-2">150+</div>
+              <div className="text-4xl font-bold text-primary mb-2">
+                {farmers?.length}+
+              </div>
               <div className="text-muted-foreground">Active Farmers</div>
             </div>
             <div className="fade-in">
-              <div className="text-4xl font-bold text-primary mb-2">300+</div>
+              <div className="text-4xl font-bold text-primary mb-2">
+                {pledges?.length}+
+              </div>
               <div className="text-muted-foreground">Community Pledgers</div>
             </div>
           </div>
@@ -445,7 +453,7 @@ export default function Landing() {
             <Button
               variant="outline"
               size="xl"
-              className="border-white text-white hover:bg-white hover:text-primary"
+              className="border-white text-black hover:bg-white hover:text-primary"
               onClick={() => navigate("/pledger/dashboard")}
             >
               Start Pledging Today
