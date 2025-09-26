@@ -14,17 +14,6 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Heart, Plus, Minus, AlertTriangle, Info } from "lucide-react";
 import { Farmer } from "@/types";
-import {
-  doc,
-  setDoc,
-  getDoc,
-  getDocs,
-  updateDoc,
-  collection,
-  query,
-  getFirestore,
-  where,
-} from "firebase/firestore";
 import { toast } from "sonner";
 import { useWriteContract } from "@/utils/hedera";
 import { useAccount } from "wagmi";

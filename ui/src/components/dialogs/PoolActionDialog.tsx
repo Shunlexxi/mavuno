@@ -204,13 +204,17 @@ export default function PoolActionDialog({
           if (action === "supply") {
             toast.loading("Supplying...");
 
-            await adminClient.writeContract({
+            const supplyHash = await adminClient.writeContract({
               abi: lendingPoolAbi,
               address: pool.address,
               functionName: "supply",
               args: [parseUnits(amount, 2), address],
               chain: hederaTestnet,
               account: adminClient.account,
+            });
+
+            await publicClient.waitForTransactionReceipt({
+              hash: supplyHash,
             });
 
             await timelineService.createTimelinePost(address, {
@@ -220,13 +224,17 @@ export default function PoolActionDialog({
           } else {
             toast.loading("Repaying...");
 
-            await adminClient.writeContract({
+            const repayHash = await adminClient.writeContract({
               abi: lendingPoolAbi,
               address: pool.address,
               functionName: "repay",
               args: [parseUnits(amount, 2), address],
               chain: hederaTestnet,
               account: adminClient.account,
+            });
+
+            await publicClient.waitForTransactionReceipt({
+              hash: repayHash,
             });
 
             const db = getFirestore();
@@ -301,11 +309,15 @@ export default function PoolActionDialog({
       try {
         setIsProcessing(true);
 
-        await writeContract({
+        const withdrawHash = await writeContract({
           abi: lendingPoolAbi,
           address: pool.address,
           functionName: "withdrawSupply",
           args: [parseUnits(amount, 2)],
+        });
+
+        await publicClient.waitForTransactionReceipt({
+          hash: withdrawHash,
         });
 
         await timelineService.createTimelinePost(address, {
@@ -327,11 +339,15 @@ export default function PoolActionDialog({
 
         await approve();
 
-        await writeContract({
+        const supplyHash = await writeContract({
           abi: lendingPoolAbi,
           address: pool.address,
           functionName: "supply",
           args: [parseUnits(amount, 2), address],
+        });
+
+        await publicClient.waitForTransactionReceipt({
+          hash: supplyHash,
         });
 
         await timelineService.createTimelinePost(address, {
@@ -351,11 +367,15 @@ export default function PoolActionDialog({
       try {
         setIsProcessing(true);
 
-        await writeContract({
+        const borrowHash = await writeContract({
           abi: lendingPoolAbi,
           address: pool.address,
           functionName: "borrow",
           args: [parseUnits(amount, 2)],
+        });
+
+        await publicClient.waitForTransactionReceipt({
+          hash: borrowHash,
         });
 
         const db = getFirestore();
@@ -382,11 +402,15 @@ export default function PoolActionDialog({
 
         await approve();
 
-        await writeContract({
+        const repayHash = await writeContract({
           abi: lendingPoolAbi,
           address: pool.address,
           functionName: "repay",
           args: [parseUnits(amount, 2), address],
+        });
+
+        await publicClient.waitForTransactionReceipt({
+          hash: repayHash,
         });
 
         const db = getFirestore();
