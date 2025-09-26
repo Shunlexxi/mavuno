@@ -412,7 +412,8 @@ export default function Landing() {
           <div className="grid md:grid-cols-3 gap-8 text-center">
             <div className="fade-in">
               <div className="text-4xl font-bold text-primary mb-2">
-                2.5M+ Hbar
+                {pledges?.reduce((a, b) => a + b.amount, 0).toLocaleString()}+
+                Hbar
               </div>
               <div className="text-muted-foreground">Backed Loans</div>
             </div>
