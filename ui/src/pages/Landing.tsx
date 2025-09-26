@@ -232,6 +232,7 @@ export default function Landing() {
                               %
                             </div>
                           </div>
+
                           <div>
                             <div className="text-muted-foreground">
                               Borrow APY
@@ -252,31 +253,37 @@ export default function Landing() {
                               {pool.currency}
                             </span>
                           </div>
+                          {pool.address !== farmer?.preferredPool && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">
+                                Your Position
+                              </span>
+                              <span className="font-medium">
+                                {Number(
+                                  formatUnits(pool.lp, 2)
+                                ).toLocaleString()}{" "}
+                                {pool.currency}
+                              </span>
+                            </div>
+                          )}
 
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">
-                              Supplied
-                            </span>
-                            <span className="font-medium">
-                              {Number(formatUnits(pool.lp, 2)).toLocaleString()}{" "}
-                              {pool.currency}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">
-                              Borrowed
-                            </span>
-                            <span className="font-medium">
-                              {Number(
-                                formatUnits(pool.borrow, 2)
-                              ).toLocaleString()}{" "}
-                              {pool.currency} (
-                              {Number(
-                                formatUnits(pool.outstanding - pool.borrow, 2)
-                              ).toLocaleString()}{" "}
-                              {pool.currency})
-                            </span>
-                          </div>
+                          {pool.address === farmer?.preferredPool && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">
+                                Borrowed
+                              </span>
+                              <span className="font-medium">
+                                {Number(
+                                  formatUnits(pool.borrow, 2)
+                                ).toLocaleString()}{" "}
+                                {pool.currency} (
+                                {Number(
+                                  formatUnits(pool.outstanding - pool.borrow, 2)
+                                ).toLocaleString()}{" "}
+                                {pool.currency})
+                              </span>
+                            </div>
+                          )}
                         </div>
                         {pool.address !== farmer?.preferredPool && (
                           <div className="grid grid-cols-2 gap-2 pt-2">
