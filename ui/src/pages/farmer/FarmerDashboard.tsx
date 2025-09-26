@@ -14,15 +14,23 @@ import { useFarmer } from "@/hooks/useFarmers";
 import { useAccount } from "wagmi";
 import { usePool } from "@/hooks/usePools";
 import { formatEther, formatUnits } from "viem";
-import { MAX_BPS_POW, Symbols } from "@/utils/constants";
+import { MAX_BPS_POW, publicClient, Symbols } from "@/utils/constants";
 import { useTimeline } from "@/hooks/useTimeline";
+import { toast } from "sonner";
+import { useWriteContract } from "@/utils/hedera";
+import { lendingPoolAbi } from "@/abis/lendingPool";
+import { useState } from "react";
 
 export default function FarmerDashboard() {
   const { address } = useAccount();
 
   const { farmer, loading: loadingFarmer } = useFarmer(address);
-  const { pool, loading } = usePool(farmer?.preferredPool, address);
+  const { pool, loading, refetch } = usePool(farmer?.preferredPool, address);
   const { posts } = useTimeline({ address, type: "activity" });
+
+  const [activating, setActivating] = useState(false);
+
+  const { writeContract } = useWriteContract();
 
   const stats = [
     {
@@ -60,6 +68,52 @@ export default function FarmerDashboard() {
       color: "text-primary",
     },
   ];
+
+  const deactivate = async () => {
+    try {
+      setActivating(true);
+
+      const hash = await writeContract({
+        abi: lendingPoolAbi,
+        address: pool.address,
+        functionName: "deactivatePledge",
+        args: [],
+      });
+
+      await publicClient.waitForTransactionReceipt({
+        hash,
+      });
+
+      refetch();
+    } catch (error) {
+      toast.error(error?.message);
+    } finally {
+      setActivating(false);
+    }
+  };
+
+  const activate = async () => {
+    try {
+      setActivating(true);
+
+      const hash = await writeContract({
+        abi: lendingPoolAbi,
+        address: pool.address,
+        functionName: "activatePledge",
+        args: [],
+      });
+
+      await publicClient.waitForTransactionReceipt({
+        hash,
+      });
+
+      refetch();
+    } catch (error) {
+      toast.error(error?.message);
+    } finally {
+      setActivating(false);
+    }
+  };
 
   if (loadingFarmer)
     return (
@@ -104,6 +158,22 @@ export default function FarmerDashboard() {
               <p className="text-xs text-muted-foreground mt-1">
                 {stat.change}
               </p>
+              {stat.title === "Pledge Status" && (
+                <>
+                  {pool?.active ? (
+                    <Button
+                      disabled={pool.borrow > 0n || activating}
+                      onClick={deactivate}
+                    >
+                      Deactivate
+                    </Button>
+                  ) : (
+                    <Button disabled={activating} onClick={activate}>
+                      Activate
+                    </Button>
+                  )}
+                </>
+              )}
             </CardContent>
           </Card>
         ))}

@@ -15,6 +15,7 @@ import PledgeActionDialog from "@/components/dialogs/PledgeActionDialog";
 import { usePledges } from "@/hooks/usePledges";
 import { useAccount, useBalance } from "wagmi";
 import { formatEther } from "viem";
+import { Link } from "react-router-dom";
 
 export default function PledgerDashboard() {
   const { address } = useAccount();
@@ -55,14 +56,18 @@ export default function PledgerDashboard() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="gap-2">
-            <Eye className="w-4 h-4" />
-            Browse Farmers
-          </Button>
-          <Button className="gap-2">
-            <Plus className="w-4 h-4" />
-            New Pledge
-          </Button>
+          <Link to={"/pledger/farmers"}>
+            <Button variant="outline" className="gap-2">
+              <Eye className="w-4 h-4" />
+              Browse Farmers
+            </Button>
+          </Link>
+          <Link to={"/pledger/farmers"}>
+            <Button className="gap-2">
+              <Plus className="w-4 h-4" />
+              New Pledge
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -177,14 +182,18 @@ export default function PledgerDashboard() {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button className="w-full justify-start gap-3" variant="outline">
-              <Heart className="w-4 h-4" />
-              Find New Farmers
-            </Button>
-            <Button className="w-full justify-start gap-3" variant="outline">
-              <Users className="w-4 h-4" />
-              View Pool Positions
-            </Button>
+            <Link to={"/pledger/farmers"}>
+              <Button className="w-full justify-start gap-3" variant="outline">
+                <Heart className="w-4 h-4" />
+                Find New Farmers
+              </Button>
+            </Link>
+            <Link to={"/"}>
+              <Button className="w-full justify-start gap-3" variant="outline">
+                <Users className="w-4 h-4" />
+                View Pool Positions
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
