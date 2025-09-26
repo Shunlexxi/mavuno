@@ -522,7 +522,7 @@ export default function PoolActionDialog({
                   {Number(
                     formatUnits(pool.totalLiquidity - pool.totalBorrowed, 2)
                   ).toLocaleString()}{" "}
-                  {pool.currency}
+                  {Symbols[pool.address]}
                 </span>
               </div>
             )}
@@ -531,7 +531,7 @@ export default function PoolActionDialog({
                 <span>Supplied</span>
                 <span className="font-semibold">
                   {Number(formatUnits(pool.lp, 2)).toLocaleString()}{" "}
-                  {pool.currency}
+                  {Symbols[pool.address]}
                 </span>
               </div>
             )}
@@ -540,7 +540,7 @@ export default function PoolActionDialog({
                 <span>Outstanding</span>
                 <span className="font-semibold">
                   {Number(formatUnits(pool.outstanding, 2)).toLocaleString()}{" "}
-                  {pool.currency}
+                  {Symbols[pool.address]}
                 </span>
               </div>
             )}
@@ -548,7 +548,7 @@ export default function PoolActionDialog({
               <div className="flex justify-between text-sm">
                 <span>Max Borrowable</span>
                 <span className="font-semibold">
-                  {borrowable.toLocaleString()} {pool.currency}
+                  {borrowable.toLocaleString()} {Symbols[pool.address]}
                 </span>
               </div>
             )}
@@ -556,7 +556,7 @@ export default function PoolActionDialog({
               <div className="flex justify-between text-sm">
                 <span>Available Balance</span>
                 <span className="font-semibold">
-                  {balance.toLocaleString()} {pool.currency}
+                  {balance.toLocaleString()} {Symbols[pool.address]}
                 </span>
               </div>
             )}
@@ -564,7 +564,7 @@ export default function PoolActionDialog({
 
           {/* Amount Input */}
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount ({pool.currency})</Label>
+            <Label htmlFor="amount">Amount ({Symbols[pool.address]})</Label>
             <Input
               id="amount"
               type="number"
@@ -573,11 +573,6 @@ export default function PoolActionDialog({
               onChange={(e) => setAmount(e.target.value)}
               required
             />
-            {action === "borrow" && (
-              <p className="text-xs text-muted-foreground">
-                Maximum borrow based on your HBAR collateral
-              </p>
-            )}
           </div>
 
           {/* Transaction Summary */}
@@ -588,7 +583,7 @@ export default function PoolActionDialog({
                 <div className="flex justify-between">
                   <span>Amount</span>
                   <span className="font-semibold">
-                    {amount} {pool.currency}
+                    {amount} {Symbols[pool.address]}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -598,7 +593,7 @@ export default function PoolActionDialog({
                   <span
                     className={`font-semibold ${action === "supply" ? "text-green-600" : "text-red-600"}`}
                   >
-                    {calculateInterest()} {pool.currency}
+                    {calculateInterest()} {Symbols[pool.address]}
                   </span>
                 </div>
               </div>

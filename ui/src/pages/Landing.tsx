@@ -23,7 +23,7 @@ import PoolActionDialog from "../components/dialogs/PoolActionDialog";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import { usePools } from "../hooks/usePools";
 import { formatUnits } from "viem";
-import { MAX_BPS_POW } from "@/utils/constants";
+import { MAX_BPS_POW, Symbols } from "@/utils/constants";
 import { useAccount } from "wagmi";
 import { useFarmer } from "@/hooks/useFarmers";
 
@@ -250,7 +250,7 @@ export default function Landing() {
                               {Number(
                                 formatUnits(pool.totalLiquidity, 2)
                               ).toLocaleString()}{" "}
-                              {pool.currency}
+                              {Symbols[pool.address]}
                             </span>
                           </div>
                           {pool.address !== farmer?.preferredPool && (
@@ -262,7 +262,7 @@ export default function Landing() {
                                 {Number(
                                   formatUnits(pool.lp, 2)
                                 ).toLocaleString()}{" "}
-                                {pool.currency}
+                                {Symbols[pool.address]}
                               </span>
                             </div>
                           )}
@@ -276,11 +276,11 @@ export default function Landing() {
                                 {Number(
                                   formatUnits(pool.borrow, 2)
                                 ).toLocaleString()}{" "}
-                                {pool.currency} (
+                                {Symbols[pool.address]} (
                                 {Number(
                                   formatUnits(pool.outstanding - pool.borrow, 2)
                                 ).toLocaleString()}{" "}
-                                {pool.currency})
+                                {Symbols[pool.address]})
                               </span>
                             </div>
                           )}
