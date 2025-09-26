@@ -10,17 +10,19 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Home, Users, User, MessageSquare } from "lucide-react";
+import { Home, Users, User, MessageSquare, HomeIcon } from "lucide-react";
 
 const farmerItems = [
   { title: "Dashboard", url: "/farmer/dashboard", icon: Home },
   { title: "My Timeline", url: "/farmer/timeline", icon: MessageSquare },
   { title: "Profile", url: "/farmer/profile", icon: User },
+  { title: "Back to Pools", url: "/", icon: HomeIcon },
 ];
 
 const pledgerItems = [
   { title: "Dashboard", url: "/pledger/dashboard", icon: Home },
   { title: "Farmers Directory", url: "/pledger/farmers", icon: Users },
+  { title: "Back to Pools", url: "/", icon: HomeIcon },
 ];
 
 export function AppSidebar() {

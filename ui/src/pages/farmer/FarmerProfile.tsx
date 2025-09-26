@@ -11,9 +11,8 @@ import {
   TrendingUp,
   Users,
   Award,
+  Loader,
 } from "lucide-react";
-import { Farmer } from "@/types";
-import { useState } from "react";
 import { usePledges } from "@/hooks/usePledges";
 import { useFarmer } from "@/hooks/useFarmers";
 import { useAccount } from "wagmi";
@@ -21,7 +20,7 @@ import { Symbols } from "@/utils/constants";
 
 export default function FarmerProfile() {
   const { address } = useAccount();
-  const { farmer } = useFarmer(address);
+  const { farmer, loading: loadingFarmer } = useFarmer(address);
   const { pledges } = usePledges({ farmerAddress: address });
 
   const achievements = [
@@ -48,6 +47,13 @@ export default function FarmerProfile() {
       )}% repayment rate`,
     },
   ];
+
+  if (loadingFarmer)
+    return (
+      <div className="flex items-center justify-center h-full w-full">
+        <Loader className="animate-spin" />
+      </div>
+    );
 
   return (
     <div className="p-6 max-w-4xl mx-auto">

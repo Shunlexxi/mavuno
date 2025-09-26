@@ -4,7 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, MapPin, Heart, Users, Filter, Star, Eye } from "lucide-react";
+import {
+  Search,
+  MapPin,
+  Heart,
+  Users,
+  Filter,
+  Star,
+  Eye,
+  Loader,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFarmers } from "@/hooks/useFarmers";
 import { Symbols } from "@/utils/constants";
@@ -21,6 +30,13 @@ export default function FarmersDirectory() {
   const handlePledge = (address: string) => {
     navigate(`/pledger/pledge/${address}`);
   };
+
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-full w-full">
+        <Loader className="animate-spin" />
+      </div>
+    );
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
