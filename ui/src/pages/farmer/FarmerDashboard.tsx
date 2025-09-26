@@ -21,34 +21,40 @@ export default function FarmerDashboard() {
   const { address } = useAccount();
 
   const { farmer, loading: loadingFarmer } = useFarmer(address);
-  const { pool } = usePool(farmer?.preferredPool, address);
+  const { pool, loading } = usePool(farmer?.preferredPool, address);
   const { posts } = useTimeline({ address, type: "activity" });
 
   const stats = [
     {
       title: "Current Loan",
-      value: `${Symbols[farmer?.preferredPool]}${Number(formatUnits(pool?.borrow ?? 0n, 2)).toLocaleString()}`,
+      value: loading
+        ? "•••"
+        : `${Symbols[farmer?.preferredPool]}${Number(formatUnits(pool?.borrow ?? 0n, 2)).toLocaleString()}`,
       change: "Since date",
       icon: DollarSign,
       color: "text-primary",
     },
     {
       title: "Total Repaid",
-      value: `${Symbols[farmer?.preferredPool]}${farmer?.totalRepaid?.toLocaleString()}`,
+      value: loading
+        ? "•••"
+        : `${Symbols[farmer?.preferredPool]}${farmer?.totalRepaid?.toLocaleString()}`,
       change: "Since date",
       icon: CheckCircle,
       color: "text-success",
     },
     {
       title: "Pledge Status",
-      value: pool?.active ? "Active" : "Inactive",
+      value: loading ? "•••" : pool?.active ? "Active" : "Inactive",
       change: "Repay back loan to deactivate.",
       icon: Clock,
       color: "text-warning",
     },
     {
       title: "Total Pledges",
-      value: `${Number(formatEther(pool?.totalPledge ?? 0n)).toLocaleString()} HBAR`,
+      value: loading
+        ? "•••"
+        : `${Number(formatEther(pool?.totalPledge ?? 0n)).toLocaleString()} HBAR`,
       change: "Since date",
       icon: TrendingUp,
       color: "text-primary",
