@@ -13,7 +13,7 @@ import {
 import { useFarmer } from "@/hooks/useFarmers";
 import { useAccount } from "wagmi";
 import { usePool } from "@/hooks/usePools";
-import { formatEther, formatUnits, parseEther } from "viem";
+import { formatUnits, parseEther } from "viem";
 import { MAX_BPS_POW, publicClient, Symbols } from "@/utils/constants";
 import { useTimeline } from "@/hooks/useTimeline";
 import { toast } from "sonner";
@@ -62,7 +62,7 @@ export default function FarmerDashboard() {
       title: "Total Pledges",
       value: loading
         ? "•••"
-        : `${Number(formatEther(pool?.totalPledge ?? 0n)).toLocaleString()} HBAR`,
+        : `${Number(formatUnits(pool?.totalPledge ?? 0n, 8)).toLocaleString()} HBAR`,
       change: "Since date",
       icon: TrendingUp,
       color: "text-primary",
