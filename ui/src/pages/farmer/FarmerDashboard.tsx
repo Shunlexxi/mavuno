@@ -13,7 +13,7 @@ import {
 import { useFarmer } from "@/hooks/useFarmers";
 import { useAccount } from "wagmi";
 import { usePool } from "@/hooks/usePools";
-import { formatEther, formatUnits } from "viem";
+import { formatEther, formatUnits, parseEther } from "viem";
 import { MAX_BPS_POW, publicClient, Symbols } from "@/utils/constants";
 import { useTimeline } from "@/hooks/useTimeline";
 import { toast } from "sonner";
@@ -54,7 +54,7 @@ export default function FarmerDashboard() {
     {
       title: "Pledge Status",
       value: loading ? "•••" : pool?.active ? "Active" : "Inactive",
-      change: "Repay back loan to deactivate.",
+      change: "",
       icon: Clock,
       color: "text-warning",
     },
@@ -161,12 +161,20 @@ export default function FarmerDashboard() {
               {stat.title === "Pledge Status" && (
                 <>
                   {pool?.active ? (
-                    <Button
-                      disabled={pool.borrow > 0n || activating}
-                      onClick={deactivate}
-                    >
-                      Deactivate
-                    </Button>
+                    <>
+                      {pool.borrow > 0n && (
+                        <p className="text-xs text-muted-foreground mt-1 mb-1">
+                          Repay back all loan to deactivate.
+                        </p>
+                      )}
+
+                      <Button
+                        disabled={pool.borrow > 0n || activating}
+                        onClick={deactivate}
+                      >
+                        Deactivate
+                      </Button>
+                    </>
                   ) : (
                     <Button disabled={activating} onClick={activate}>
                       Activate
@@ -233,8 +241,8 @@ export default function FarmerDashboard() {
                   HealthFactor
                 </span>
                 <Badge variant="secondary">
-                  {pool?.healthFactor > BigInt(Number.MAX_VALUE)
-                    ? "∞"
+                  {pool?.healthFactor > parseEther("1")
+                    ? "Infinity"
                     : Number(
                         formatUnits(pool?.healthFactor ?? 0n, 0)
                       ).toLocaleString()}
