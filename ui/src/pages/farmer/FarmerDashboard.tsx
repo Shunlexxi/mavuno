@@ -21,6 +21,7 @@ import { useWriteContract } from "@/utils/hedera";
 import { lendingPoolAbi } from "@/abis/lendingPool";
 import { useState } from "react";
 import PoolActionDialog from "@/components/dialogs/PoolActionDialog";
+import { formatDistanceToNow } from "date-fns";
 
 export default function FarmerDashboard() {
   const { address } = useAccount();
@@ -196,7 +197,7 @@ export default function FarmerDashboard() {
       <div className="grid lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Recent Timeline Activity</CardTitle>
+            <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {posts.map((post) => {
@@ -206,7 +207,7 @@ export default function FarmerDashboard() {
                   <div className="flex-1">
                     <p className="text-sm">{post.content}</p>
                     <p className="text-xs text-muted-foreground">
-                      {post.createdAt}
+                      {formatDistanceToNow(post.createdAt)}
                     </p>
                   </div>
                 </div>

@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  TrendingUp,
   Heart,
   DollarSign,
   Users,
@@ -16,11 +15,14 @@ import { usePledges } from "@/hooks/usePledges";
 import { useAccount, useBalance } from "wagmi";
 import { formatEther } from "viem";
 import { Link } from "react-router-dom";
+import { useTimeline } from "@/hooks/useTimeline";
+import { formatDistanceToNow } from "date-fns";
 
 export default function PledgerDashboard() {
   const { address } = useAccount();
   const { data: balance } = useBalance({ address });
   const { pledges, loading, refetch } = usePledges({ pledgerAddress: address });
+  const { posts } = useTimeline({ address, type: "activity" });
 
   const dashboardStats = [
     {
@@ -176,25 +178,24 @@ export default function PledgerDashboard() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+            <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Link to={"/pledger/farmers"}>
-              <Button className="w-full justify-start gap-3" variant="outline">
-                <Heart className="w-4 h-4" />
-                Find New Farmers
-              </Button>
-            </Link>
-
-            <Link to={"/"} className="mt-3 block">
-              <Button className="w-full justify-start gap-3" variant="outline">
-                <Users className="w-4 h-4" />
-                View Pool Positions
-              </Button>
-            </Link>
+          <CardContent className="space-y-4">
+            {posts.map((post) => {
+              return (
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                  <div className="flex-1">
+                    <p className="text-sm">{post.content}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(post.createdAt)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
       </div>
