@@ -27,7 +27,7 @@ export interface CreateFarmerRequest {
   preferredPool: Hex;
 }
 
-export interface CreatePledgeRequest {
+export interface PledgeRequest {
   farmerAddress: string;
   amount: number;
   currency: "HBAR";

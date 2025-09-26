@@ -1,5 +1,5 @@
 import { Pledge } from "@/types";
-import { ApiResponse, CreatePledgeRequest, PledgeFilters } from "@/types/api";
+import { ApiResponse, PledgeRequest, PledgeFilters } from "@/types/api";
 import { farmersService } from "./farmersService";
 import {
   doc,
@@ -54,7 +54,7 @@ export class PledgesService {
 
   async createPledge(
     pledgerAddress: Hex,
-    pledgeData: CreatePledgeRequest
+    pledgeData: PledgeRequest
   ): Promise<ApiResponse<Pledge>> {
     try {
       const farmerResponse = await farmersService.getFarmerByAddress(
@@ -124,7 +124,7 @@ export class PledgesService {
 
   async decreasePledge(
     pledgerAddress: Hex,
-    pledgeData: CreatePledgeRequest
+    pledgeData: PledgeRequest
   ): Promise<ApiResponse<Partial<Pledge>>> {
     try {
       const farmerResponse = await farmersService.getFarmerByAddress(
