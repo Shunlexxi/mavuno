@@ -10,6 +10,7 @@ import {
   query,
   getFirestore,
   where,
+  or,
 } from "firebase/firestore";
 
 export class FarmersService {
@@ -20,7 +21,14 @@ export class FarmersService {
       let q = query(dbRef);
 
       if (filters?.searchTerm) {
-        q = query(q, where("name", "in", filters?.searchTerm));
+        q = query(
+          q,
+          or(
+            where("name", "==", filters?.searchTerm),
+            where("cropType", "==", filters?.searchTerm),
+            where("location", "==", filters?.searchTerm)
+          )
+        );
       }
 
       if (filters?.cropType) {

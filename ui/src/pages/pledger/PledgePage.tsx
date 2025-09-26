@@ -169,13 +169,6 @@ export default function PledgePage() {
                   {farmer.totalRepaid.toLocaleString()}
                 </span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Current Loan</span>
-                <span className="font-semibold">
-                  {Symbols[farmer?.preferredPool]}
-                  {0}
-                </span>
-              </div>
             </div>
           </CardContent>
         </Card>

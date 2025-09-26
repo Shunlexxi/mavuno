@@ -181,14 +181,15 @@ export default function PledgerDashboard() {
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent>
             <Link to={"/pledger/farmers"}>
               <Button className="w-full justify-start gap-3" variant="outline">
                 <Heart className="w-4 h-4" />
                 Find New Farmers
               </Button>
             </Link>
-            <Link to={"/"}>
+
+            <Link to={"/"} className="mt-3 block">
               <Button className="w-full justify-start gap-3" variant="outline">
                 <Users className="w-4 h-4" />
                 View Pool Positions
