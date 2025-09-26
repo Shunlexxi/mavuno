@@ -233,9 +233,11 @@ export default function FarmerDashboard() {
                   HealthFactor
                 </span>
                 <Badge variant="secondary">
-                  {Number(
-                    formatUnits(pool?.healthFactor ?? 0n, 0)
-                  ).toLocaleString()}
+                  {pool?.healthFactor > BigInt(Number.MAX_VALUE)
+                    ? "∞"
+                    : Number(
+                        formatUnits(pool?.healthFactor ?? 0n, 0)
+                      ).toLocaleString()}
                 </Badge>
               </div>
               <div className="flex justify-between items-center">
