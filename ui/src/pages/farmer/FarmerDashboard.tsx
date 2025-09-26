@@ -20,11 +20,16 @@ import { toast } from "sonner";
 import { useWriteContract } from "@/utils/hedera";
 import { lendingPoolAbi } from "@/abis/lendingPool";
 import { useState } from "react";
+import PoolActionDialog from "@/components/dialogs/PoolActionDialog";
 
 export default function FarmerDashboard() {
   const { address } = useAccount();
 
-  const { farmer, loading: loadingFarmer } = useFarmer(address);
+  const {
+    farmer,
+    loading: loadingFarmer,
+    refetch: refetchFarmer,
+  } = useFarmer(address);
   const { pool, loading, refetch } = usePool(farmer?.preferredPool, address);
   const { posts } = useTimeline({ address, type: "activity" });
 
@@ -258,7 +263,16 @@ export default function FarmerDashboard() {
                 </span>
               </div>
               <div className="pt-4">
-                <Button className="w-full">Make Payment</Button>
+                <PoolActionDialog
+                  pool={pool}
+                  action="repay"
+                  onClose={() => {
+                    refetch();
+                    refetchFarmer();
+                  }}
+                >
+                  <Button className="w-full">Make Payment</Button>
+                </PoolActionDialog>
               </div>
             </div>
           </CardContent>
