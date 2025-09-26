@@ -20,14 +20,6 @@ contract FarmerRegistry is FarmerRegistryInterface, Ownable {
     mapping(address => string) public profileUri; // farmer wallet => profile URI IPFS
     mapping(address => address) public farmerToManager; // farmer => pledge manager
 
-    modifier onlyFarmer() {
-        require(
-            bytes(profileUri[msg.sender]).length > 0,
-            "not-registered-farmer"
-        );
-        _;
-    }
-
     constructor() Ownable(msg.sender) {}
 
     /// @notice Register or update a farmer's on-chain profile pointer.

@@ -22,6 +22,13 @@ async function main() {
   console.log("NGN:", await ngn.getAddress());
   console.log("NGN underlying:", await ngn.underlying());
 
+  const ngnUnderlying = await ethers.getContractAt(
+    "IHederaTokenService",
+    await ngn.underlying()
+  );
+
+  await ngnUnderlying.associateToken(deployer.address, ngn.underlying());
+
   const cedi = await Fiat.deploy();
   await cedi.waitForDeployment();
   await cedi.createUnderlying("Ghanaian Cedi", "CEDI", 7_776_000, {
@@ -32,6 +39,13 @@ async function main() {
   console.log("CEDI:", await cedi.getAddress());
   console.log("CEDI underlying:", await cedi.underlying());
 
+  const cediUnderlying = await ethers.getContractAt(
+    "IHederaTokenService",
+    await cedi.underlying()
+  );
+
+  await cediUnderlying.associateToken(deployer.address, cedi.underlying());
+
   const rand = await Fiat.deploy();
   await rand.waitForDeployment();
   await rand.createUnderlying("South African Rand", "RAND", 7_776_000, {
@@ -41,6 +55,13 @@ async function main() {
 
   console.log("RAND:", await rand.getAddress());
   console.log("RAND underlying:", await rand.underlying());
+
+  const randUnderlying = await ethers.getContractAt(
+    "IHederaTokenService",
+    await rand.underlying()
+  );
+
+  await randUnderlying.associateToken(deployer.address, rand.underlying());
 
   // --- Deploy Oracle ---
   const Oracle = await ethers.getContractFactory("Oracle");
@@ -97,15 +118,15 @@ main().catch((err) => {
 });
 
 // Deploying contracts with: 0x2531dCd3dC58559c19EEE09736443D026D40d5f5
-// NGN: 0x1bF92557bCD03fF7CF57403D977cc183D479A7A2
-// NGN underlying: 0x0000000000000000000000000000000000693196
-// CEDI: 0x3d24dEc730f091c1d2369350DFE59a0F11d0B6f1
-// CEDI underlying: 0x0000000000000000000000000000000000693199
-// RAND: 0xee16dC17900De4483fe89eBf33AaE692EdD9d2c4
-// RAND underlying: 0x000000000000000000000000000000000069319b
-// Oracle deployed at: 0x35a60EE51D49c3e5d2B9A47D6bEdD2C6970E5260
-// FarmerRegistry deployed at: 0x3c69cEb2370f26CD8377c8215c70429242d14aF5
-// MavunoFactory deployed at: 0x22154535138449c04E08B2c37171713Eb22a3AA9
-// NGN pool: 0x6651FA2d7128351e07Cb012B32174CAD630aB19F
-// CEDI pool: 0x9b3203d2e0D9D4608B22d505d41c667E50683801
-// RAND pool: 0x0b61B3a9a233AcF5ddd9e81c0C555978Bba531aB
+// NGN: 0xCB7fB204F7aF2Fb0BfF2f92D8250Fd6De62c4114
+// NGN underlying: 0x00000000000000000000000000000000006967a4
+// CEDI: 0xBE04AAcF1cD36A8bF64C3dF5d2fe1f56045bd16c
+// CEDI underlying: 0x00000000000000000000000000000000006967a6
+// RAND: 0xEc786B065Be8360f9f32Fc82b00A082d0DcE7aCc
+// RAND underlying: 0x00000000000000000000000000000000006967aB
+// Oracle deployed at: 0x8f691a8Fda6008A6D28060C0df04d7448384b4eE
+// FarmerRegistry deployed at: 0x991Ea75C34B6f7835Cd8a2c5bbB89F86c455752D
+// MavunoFactory deployed at: 0x223593679a880e881a050a49697911db5B3a96A2
+// NGN pool: 0xf54ea62f9613A9627bf7C533Fa7d8c92f121aB0F
+// CEDI pool: 0x9862220658e9D83dB543dbC926a6eF1fFd530937
+// RAND pool: 0xf5c0BA890C08628A4a1FBB4dFD9000FAA32369b1

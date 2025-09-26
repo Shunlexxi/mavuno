@@ -160,7 +160,7 @@ library LendingPoolLogic {
         int64 borrowRateBp,
         int64 MAX_BPS,
         int64 totalBorrowed
-    ) internal returns (int64 remainingPrincipal) {
+    ) internal returns (int64 remainingPrincipal, int64 interestPaid) {
         if (amount <= 0) revert ZeroAmount();
         if (position.principal <= 0) revert NoOutstandingLoan();
 
@@ -183,6 +183,8 @@ library LendingPoolLogic {
             remainingPrincipal = int64(uint64(outstandingAfter));
             position.principal = remainingPrincipal;
             position.borrowedAt = block.timestamp;
+
+            interestPaid = amount;
         } else {
             uint256 payLeft = pay - interestUint;
 
@@ -203,6 +205,8 @@ library LendingPoolLogic {
                 int64 principalRepaid = int64(uint64(payLeft));
                 totalBorrowed -= principalRepaid;
             }
+
+            interestPaid = interest;
         }
     }
 

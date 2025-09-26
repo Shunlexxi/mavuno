@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
+import "./hts-precompile/BasicHederaTokenService.sol";
+
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {BasicHederaTokenService} from "./hts-precompile/BasicHederaTokenService.sol";
 import {FiatInterface} from "./interfaces/FiatInterface.sol";
 import {OracleInterface} from "./interfaces/OracleInterface.sol";
 import {FarmerRegistryInterface} from "./interfaces/FarmerRegistryInterface.sol";
@@ -12,7 +13,6 @@ import {LendingPoolInterface} from "./interfaces/LendingPoolInterface.sol";
 import {InterestLib} from "./libs/InterestLib.sol";
 import {PledgeManagerInterface} from "./interfaces/PledgeManagerInterface.sol";
 import {LendingPoolLogic} from "./libs/LendingPoolLogic.sol";
-import {HederaResponseCodes} from "./hts-precompile/HederaResponseCodes.sol";
 
 contract LendingPool is
     ReentrancyGuard,
@@ -35,7 +35,7 @@ contract LendingPool is
         public farmerPositions;
 
     int64 public loanToValueBp = 7_000;
-    int64 public borrowRateBp = 800;
+    int64 public borrowRateBp = 2_400;
     int64 public constant MAX_BPS = 10_000;
     int64 public constant LIQUIDATION_BPS = 9_600;
 
@@ -159,16 +159,12 @@ contract LendingPool is
         LendingPoolLogic.BorrowerPosition storage position = farmerPositions[
             behalfOf
         ];
-        int64 remainingPrincipal = position.processRepayment(
-            amount,
-            borrowRateBp,
-            MAX_BPS,
-            totalBorrowed
-        );
+        (int64 remainingPrincipal, int64 interestPaid) = position
+            .processRepayment(amount, borrowRateBp, MAX_BPS, totalBorrowed);
 
         totalBorrowed -= amount;
         transferToken(fiat.underlying(), msg.sender, address(this), amount);
-        emit Repaid(behalfOf, amount, remainingPrincipal, 0); // interest paid is calculated internally
+        emit Repaid(behalfOf, amount, remainingPrincipal, interestPaid);
         return remainingPrincipal;
     }
 
