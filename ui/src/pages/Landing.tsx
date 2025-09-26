@@ -112,7 +112,7 @@ export default function Landing() {
               variant="hero"
               size="xl"
               className="gap-3"
-              onClick={() => navigate("/farmer/register")}
+              onClick={() => navigate("/farmer/login")}
             >
               <Sprout className="w-5 h-5" />
               I'm a Farmer
