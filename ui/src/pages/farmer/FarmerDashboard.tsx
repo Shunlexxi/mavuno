@@ -263,16 +263,18 @@ export default function FarmerDashboard() {
                 </span>
               </div>
               <div className="pt-4">
-                <PoolActionDialog
-                  pool={pool}
-                  action="repay"
-                  onClose={() => {
-                    refetch();
-                    refetchFarmer();
-                  }}
-                >
-                  <Button className="w-full">Make Payment</Button>
-                </PoolActionDialog>
+                {pool && (
+                  <PoolActionDialog
+                    pool={pool}
+                    action="repay"
+                    onClose={() => {
+                      refetch();
+                      refetchFarmer();
+                    }}
+                  >
+                    <Button className="w-full">Make Payment</Button>
+                  </PoolActionDialog>
+                )}
               </div>
             </div>
           </CardContent>
