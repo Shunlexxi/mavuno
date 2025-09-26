@@ -208,9 +208,6 @@ export default function PledgePage() {
                   onChange={(e) => setPledgeAmount(e.target.value)}
                   required
                 />
-                <p className="text-xs text-muted-foreground">
-                  Minimum pledge: 100 {currency}
-                </p>
               </div>
 
               {pledgeAmount && (
