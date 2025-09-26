@@ -38,7 +38,7 @@ export default function FarmerDashboard() {
       value: loading
         ? "•••"
         : `${Symbols[farmer?.preferredPool]}${Number(formatUnits(pool?.borrow ?? 0n, 2)).toLocaleString()}`,
-      change: "Since date",
+      change: `Since ${farmer?.createdAt}`,
       icon: DollarSign,
       color: "text-primary",
     },
@@ -47,7 +47,7 @@ export default function FarmerDashboard() {
       value: loading
         ? "•••"
         : `${Symbols[farmer?.preferredPool]}${farmer?.totalRepaid?.toLocaleString()}`,
-      change: "Since date",
+      change: `Since ${farmer?.createdAt}`,
       icon: CheckCircle,
       color: "text-success",
     },
@@ -63,7 +63,7 @@ export default function FarmerDashboard() {
       value: loading
         ? "•••"
         : `${Number(formatUnits(pool?.totalPledge ?? 0n, 8)).toLocaleString()} HBAR`,
-      change: "Since date",
+      change: "Can be use to secure loans",
       icon: TrendingUp,
       color: "text-primary",
     },
