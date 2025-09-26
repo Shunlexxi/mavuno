@@ -54,6 +54,7 @@ export interface Pool {
   borrowAPY: bigint;
   utilizationRate: number;
   lp: bigint;
+  withdrawable: bigint;
   borrow: bigint;
   outstanding: bigint;
   healthFactor: bigint;

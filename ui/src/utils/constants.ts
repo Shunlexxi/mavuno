@@ -14,21 +14,21 @@ export const publicClient = createPublicClient({
 });
 
 export const Contracts = {
-  NairaFiat: "0xCB7fB204F7aF2Fb0BfF2f92D8250Fd6De62c4114" as Hex,
-  NairaFiatUnderlying: "0x00000000000000000000000000000000006967a4" as Hex,
-  CediFiat: "0xBE04AAcF1cD36A8bF64C3dF5d2fe1f56045bd16c" as Hex,
-  CediFiatUnderlying: "0x00000000000000000000000000000000006967a6" as Hex,
-  RandFiat: "0xEc786B065Be8360f9f32Fc82b00A082d0DcE7aCc" as Hex,
-  RandFiatUnderlying: "0x00000000000000000000000000000000006967aB" as Hex,
-  Orcale: "0x8f691a8Fda6008A6D28060C0df04d7448384b4eE" as Hex,
-  FarmerRegistry: "0x991Ea75C34B6f7835Cd8a2c5bbB89F86c455752D" as Hex,
-  MavunoFactory: "0x223593679a880e881a050a49697911db5B3a96A2" as Hex,
-  NairaPool: "0xf54ea62f9613A9627bf7C533Fa7d8c92f121aB0F" as Hex,
-  CediPool: "0x9862220658e9D83dB543dbC926a6eF1fFd530937" as Hex,
-  RandPool: "0xf5c0BA890C08628A4a1FBB4dFD9000FAA32369b1" as Hex,
-  CediFiatUnderlyingId: "0.0.6907812",
-  RandFiatUnderlyingId: "0.0.6907814",
-  NairaFiatUnderlyingId: "0.0.6907819",
+  NairaFiat: "0x908E7B74887f47799c7d75c5a7FC5b25344Ef287" as Hex,
+  NairaFiatUnderlying: "0x0000000000000000000000000000000000696A59" as Hex,
+  CediFiat: "0x8e618CEeb54fB10b52Ab2CCD8839FC4A9b28CA75" as Hex,
+  CediFiatUnderlying: "0x0000000000000000000000000000000000696A5B" as Hex,
+  RandFiat: "0xfd3DC4dC7dc401874215896180c1838C9476d2f1" as Hex,
+  RandFiatUnderlying: "0x0000000000000000000000000000000000696a63" as Hex,
+  Orcale: "0xd964B9ecf0779595Db15912A05c546C418DD0f72" as Hex,
+  FarmerRegistry: "0x666942D4582D40375965150a774068a529312926" as Hex,
+  MavunoFactory: "0xA84a52665aAd57db7544c61df496fa31F8de1d37" as Hex,
+  NairaPool: "0xd09FEd685D3C1d390a3Ba6348d664619D65330c7" as Hex,
+  CediPool: "0xC40DbD39555823F30c28C72fF44b42dAEA35f048" as Hex,
+  RandPool: "0xA2e03e5299c12f7231E820d291b530B7003Db803" as Hex,
+  CediFiatUnderlyingId: "0.0.6908505",
+  RandFiatUnderlyingId: "0.0.6908507",
+  NairaFiatUnderlyingId: "0.0.6908515",
 };
 
 export const Symbols: Record<Hex, string> = {};

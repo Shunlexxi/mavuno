@@ -253,111 +253,108 @@ export default function Landing() {
                               {Symbols[pool.address]}
                             </span>
                           </div>
-                          {pool.address !== farmer?.preferredPool && (
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">
-                                Your Position
-                              </span>
-                              <span className="font-medium">
-                                {Number(
-                                  formatUnits(pool.lp, 2)
-                                ).toLocaleString()}{" "}
-                                {Symbols[pool.address]}
-                              </span>
-                            </div>
-                          )}
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">
+                              Your Position
+                            </span>
+                            <span className="font-medium">
+                              {Number(formatUnits(pool.lp, 2)).toLocaleString()}{" "}
+                              {Symbols[pool.address]} (
+                              {Number(
+                                formatUnits(pool.withdrawable - pool.lp, 2)
+                              ).toLocaleString()}{" "}
+                              {Symbols[pool.address]})
+                            </span>
+                          </div>
 
-                          {pool.address === farmer?.preferredPool && (
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">
-                                Borrowed
-                              </span>
-                              <span className="font-medium">
-                                {Number(
-                                  formatUnits(pool.borrow, 2)
-                                ).toLocaleString()}{" "}
-                                {Symbols[pool.address]} (
-                                {Number(
-                                  formatUnits(pool.outstanding - pool.borrow, 2)
-                                ).toLocaleString()}{" "}
-                                {Symbols[pool.address]})
-                              </span>
-                            </div>
-                          )}
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">
+                              Borrowed
+                            </span>
+                            <span className="font-medium">
+                              {Number(
+                                formatUnits(pool.borrow, 2)
+                              ).toLocaleString()}{" "}
+                              {Symbols[pool.address]} (
+                              {Number(
+                                formatUnits(pool.outstanding - pool.borrow, 2)
+                              ).toLocaleString()}{" "}
+                              {Symbols[pool.address]})
+                            </span>
+                          </div>
                         </div>
-                        {pool.address !== farmer?.preferredPool && (
-                          <div className="grid grid-cols-2 gap-2 pt-2">
-                            <PoolActionDialog
-                              pool={pool}
-                              action="supply"
-                              onClose={() => {
-                                refetch(address);
-                              }}
+                        <div className="grid grid-cols-2 gap-2 pt-2">
+                          <PoolActionDialog
+                            pool={pool}
+                            action="supply"
+                            onClose={() => {
+                              refetch(address);
+                            }}
+                          >
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1"
                             >
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="gap-1"
-                              >
-                                <ArrowUpCircle className="w-3 h-3" />
-                                Supply
-                              </Button>
-                            </PoolActionDialog>
-                            <PoolActionDialog
-                              pool={pool}
-                              action="withdraw"
-                              onClose={() => {
-                                refetch(address);
-                              }}
+                              <ArrowUpCircle className="w-3 h-3" />
+                              Supply
+                            </Button>
+                          </PoolActionDialog>
+                          <PoolActionDialog
+                            pool={pool}
+                            action="withdraw"
+                            onClose={() => {
+                              refetch(address);
+                            }}
+                          >
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1"
                             >
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="gap-1"
-                              >
-                                <Minus className="w-3 h-3" />
-                                Withdraw
-                              </Button>
-                            </PoolActionDialog>
-                          </div>
-                        )}
-                        {pool.address === farmer?.preferredPool && (
-                          <div className="grid grid-cols-2 gap-2 pt-2">
-                            <PoolActionDialog
-                              pool={pool}
-                              action="borrow"
-                              onClose={() => {
-                                refetch(address);
-                              }}
-                            >
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                className="gap-1"
-                              >
-                                <ArrowDownCircle className="w-3 h-3" />
-                                Borrow
-                              </Button>
-                            </PoolActionDialog>
+                              <Minus className="w-3 h-3" />
+                              Withdraw
+                            </Button>
+                          </PoolActionDialog>
+                        </div>
 
-                            <PoolActionDialog
-                              pool={pool}
-                              action="repay"
-                              onClose={() => {
-                                refetch(address);
-                              }}
+                        <div className="grid grid-cols-2 gap-2">
+                          <PoolActionDialog
+                            pool={pool}
+                            action="borrow"
+                            onClose={() => {
+                              refetch(address);
+                            }}
+                          >
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={pool.address !== farmer?.preferredPool}
+                              className="gap-1"
                             >
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                className="gap-1"
-                              >
-                                <TrendingUp className="w-3 h-3" />
-                                Repay
-                              </Button>
-                            </PoolActionDialog>
-                          </div>
-                        )}
+                              <ArrowDownCircle className="w-3 h-3" />
+                              Borrow
+                            </Button>
+                          </PoolActionDialog>
+
+                          <PoolActionDialog
+                            pool={pool}
+                            action="repay"
+                            onClose={() => {
+                              refetch(address);
+                            }}
+                          >
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={pool.address !== farmer?.preferredPool}
+                              className="gap-1"
+                            >
+                              <TrendingUp className="w-3 h-3" />
+                              Repay
+                            </Button>
+                          </PoolActionDialog>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}

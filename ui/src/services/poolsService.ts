@@ -65,80 +65,78 @@ export class PoolsService {
 
       const supplyAPY = BigInt((Number(borrowAPY) * utilizationRate) / 100);
 
-      const lp =
+      const [
+        lp,
+        withdrawable,
+        [principal],
+        outstanding,
+        healthFactor,
+        pledgeManager,
+      ] =
         account == zeroAddress
-          ? 0n
-          : ((await publicClient.readContract({
-              abi: lendingPoolAbi,
-              address,
-              functionName: "balanceOf",
-              args: [account],
-              authorizationList: undefined,
-            })) as bigint);
+          ? [0n, 0n, [0n, 0n], 0n, 0n, zeroAddress]
+          : await Promise.all([
+              (await publicClient.readContract({
+                abi: lendingPoolAbi,
+                address,
+                functionName: "balanceOf",
+                args: [account],
+                authorizationList: undefined,
+              })) as bigint,
+              (await publicClient.readContract({
+                abi: lendingPoolAbi,
+                address,
+                functionName: "withdrawable",
+                args: [account],
+                authorizationList: undefined,
+              })) as bigint,
+              (await publicClient.readContract({
+                abi: lendingPoolAbi,
+                address,
+                functionName: "farmerPositions",
+                args: [account],
+                authorizationList: undefined,
+              })) as bigint[],
+              (await publicClient.readContract({
+                abi: lendingPoolAbi,
+                address,
+                functionName: "outstanding",
+                args: [account],
+                authorizationList: undefined,
+              })) as bigint,
+              (await publicClient.readContract({
+                abi: lendingPoolAbi,
+                address,
+                functionName: "healthFactorLTV",
+                args: [account],
+                authorizationList: undefined,
+              })) as bigint,
+              (await publicClient.readContract({
+                abi: farmerRegistryAbi,
+                address: Contracts.FarmerRegistry,
+                functionName: "farmerToManager",
+                args: [account],
+                authorizationList: undefined,
+              })) as Hex,
+            ]);
 
-      const [principal] =
-        account == zeroAddress
-          ? [0n, 0n]
-          : ((await publicClient.readContract({
-              abi: lendingPoolAbi,
-              address,
-              functionName: "farmerPositions",
-              args: [account],
-              authorizationList: undefined,
-            })) as bigint[]);
-
-      const outstanding =
-        account == zeroAddress
-          ? 0n
-          : ((await publicClient.readContract({
-              abi: lendingPoolAbi,
-              address,
-              functionName: "outstanding",
-              args: [account],
-              authorizationList: undefined,
-            })) as bigint);
-
-      const healthFactor =
-        account == zeroAddress
-          ? 0n
-          : ((await publicClient.readContract({
-              abi: lendingPoolAbi,
-              address,
-              functionName: "healthFactorLTV",
-              args: [account],
-              authorizationList: undefined,
-            })) as bigint);
-
-      const pledgeManager =
-        account == zeroAddress
-          ? zeroAddress
-          : ((await publicClient.readContract({
-              abi: farmerRegistryAbi,
-              address: Contracts.FarmerRegistry,
-              functionName: "farmerToManager",
-              args: [account],
-              authorizationList: undefined,
-            })) as Hex);
-
-      const totalPledge =
+      const [totalPledge, active] =
         pledgeManager == zeroAddress
-          ? 0n
-          : ((await publicClient.readContract({
-              abi: pledgeManagerAbi,
-              address: pledgeManager,
-              functionName: "totalSupply",
-              authorizationList: undefined,
-            })) as bigint);
-
-      const active =
-        pledgeManager == zeroAddress
-          ? false
-          : ((await publicClient.readContract({
-              abi: pledgeManagerAbi,
-              address: pledgeManager,
-              functionName: "active",
-              authorizationList: undefined,
-            })) as boolean);
+          ? [0n, false]
+          : await Promise.all([
+              (await publicClient.readContract({
+                abi: pledgeManagerAbi,
+                address: pledgeManager,
+                functionName: "totalSupply",
+                authorizationList: undefined,
+              })) as bigint,
+              (await publicClient.readContract({
+                abi: pledgeManagerAbi,
+                address: pledgeManager,
+                functionName: "active",
+                authorizationList: undefined,
+              })) as boolean,
+            ]);
 
       return {
         address,
@@ -152,6 +150,7 @@ export class PoolsService {
         borrowAPY,
         utilizationRate,
         lp,
+        withdrawable,
         borrow: principal,
         outstanding,
         healthFactor,
@@ -173,6 +172,7 @@ export class PoolsService {
         borrowAPY: 0n,
         utilizationRate: 0,
         lp: 0n,
+        withdrawable: 0n,
         borrow: 0n,
         outstanding: 0n,
         healthFactor: 0n,

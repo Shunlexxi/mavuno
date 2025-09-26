@@ -105,4 +105,8 @@ contract PledgeManager is
     }
 
     receive() external payable {}
+
+    function decimals() public pure override returns (uint8) {
+        return 8;
+    }
 }

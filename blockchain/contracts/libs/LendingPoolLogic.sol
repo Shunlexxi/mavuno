@@ -79,6 +79,20 @@ library LendingPoolLogic {
         if (lpToBurn == 0) revert ZeroAmount();
     }
 
+    function calculateWithdrawalLP(
+        uint256 lpAmount,
+        uint256 lpTotalSupply,
+        int64 totalSupplied
+    ) internal pure returns (uint256 amount) {
+        if (lpAmount <= 0) revert ZeroAmount();
+        if (lpTotalSupply == 0) revert NoLPSupply();
+
+        uint256 numerator = lpAmount * uint256(uint64(totalSupplied));
+        amount = numerator / lpTotalSupply;
+
+        if (amount == 0) revert ZeroAmount();
+    }
+
     function calculateBorrowable(
         address farmer,
         FarmerRegistryInterface registry,

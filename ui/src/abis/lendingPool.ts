@@ -405,7 +405,7 @@ export const lendingPoolAbi = [
         type: "uint256",
       },
     ],
-    name: "WithdrawnSupply",
+    name: "Withdrawn",
     type: "event",
   },
   {
@@ -946,9 +946,28 @@ export const lendingPoolAbi = [
         type: "int64",
       },
     ],
-    name: "withdrawSupply",
+    name: "withdraw",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "withdrawable",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {

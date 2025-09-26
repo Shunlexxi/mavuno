@@ -398,7 +398,7 @@ export const pledgeManagerAbi = [
         type: "uint8",
       },
     ],
-    stateMutability: "view",
+    stateMutability: "pure",
     type: "function",
   },
   {

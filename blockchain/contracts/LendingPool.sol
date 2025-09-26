@@ -79,7 +79,7 @@ contract LendingPool is
         emit Supplied(behalfOf, amount, minted);
     }
 
-    function withdrawSupply(int64 amount) external nonReentrant {
+    function withdraw(int64 amount) external nonReentrant {
         uint256 lpToBurn = LendingPoolLogic.calculateWithdrawal(
             amount,
             totalSupply(),
@@ -94,7 +94,16 @@ contract LendingPool is
         totalSupplied -= amount;
         transferToken(fiat.underlying(), address(this), msg.sender, amount);
 
-        emit WithdrawnSupply(msg.sender, amount, lpToBurn);
+        emit Withdrawn(msg.sender, amount, lpToBurn);
+    }
+
+    function withdrawable(address account) public view returns (uint256) {
+        return
+            LendingPoolLogic.calculateWithdrawalLP(
+                balanceOf(account),
+                totalSupply(),
+                totalSupplied
+            );
     }
 
     /* ========== Borrowing / Repayment ========== */
@@ -163,6 +172,8 @@ contract LendingPool is
             .processRepayment(amount, borrowRateBp, MAX_BPS, totalBorrowed);
 
         totalBorrowed -= amount;
+        totalSupplied += interestPaid;
+
         transferToken(fiat.underlying(), msg.sender, address(this), amount);
         emit Repaid(behalfOf, amount, remainingPrincipal, interestPaid);
         return remainingPrincipal;

@@ -3,7 +3,7 @@ pragma solidity ^0.8.28;
 
 interface LendingPoolInterface {
     event Supplied(address indexed lp, int64 amount, uint256 lpMinted);
-    event WithdrawnSupply(address indexed lp, int64 amount, uint256 lpBurned);
+    event Withdrawn(address indexed lp, int64 amount, uint256 lpBurned);
     event Borrowed(address indexed farmer, int64 amount, int64 newPrincipal);
     event Repaid(
         address indexed farmer,
@@ -19,7 +19,9 @@ interface LendingPoolInterface {
 
     function supply(int64 amount, address behalfOf) external;
 
-    function withdrawSupply(int64 amount) external;
+    function withdraw(int64 amount) external;
+
+    function withdrawable(address account) external view returns (uint256);
 
     function outstanding(address farmer) external view returns (int64);
 

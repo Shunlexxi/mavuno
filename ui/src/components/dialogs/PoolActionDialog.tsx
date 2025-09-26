@@ -312,7 +312,7 @@ export default function PoolActionDialog({
         const withdrawHash = await writeContract({
           abi: lendingPoolAbi,
           address: pool.address,
-          functionName: "withdrawSupply",
+          functionName: "withdraw",
           args: [parseUnits(amount, 2)],
         });
 
@@ -515,22 +515,23 @@ export default function PoolActionDialog({
                 %
               </span>
             </div>
-            {action === "borrow" && (
-              <div className="flex justify-between text-sm">
-                <span>Available Liquidity</span>
-                <span className="font-semibold">
-                  {Number(
-                    formatUnits(pool.totalLiquidity - pool.totalBorrowed, 2)
-                  ).toLocaleString()}{" "}
-                  {Symbols[pool.address]}
-                </span>
-              </div>
-            )}
+            {action === "borrow" ||
+              (action === "withdraw" && (
+                <div className="flex justify-between text-sm">
+                  <span>Available Liquidity</span>
+                  <span className="font-semibold">
+                    {Number(
+                      formatUnits(pool.totalLiquidity - pool.totalBorrowed, 2)
+                    ).toLocaleString()}{" "}
+                    {Symbols[pool.address]}
+                  </span>
+                </div>
+              ))}
             {(action === "supply" || action === "withdraw") && (
               <div className="flex justify-between text-sm">
-                <span>Supplied</span>
+                <span>Withdrawble</span>
                 <span className="font-semibold">
-                  {Number(formatUnits(pool.lp, 2)).toLocaleString()}{" "}
+                  {Number(formatUnits(pool.withdrawable, 2)).toLocaleString()}{" "}
                   {Symbols[pool.address]}
                 </span>
               </div>
