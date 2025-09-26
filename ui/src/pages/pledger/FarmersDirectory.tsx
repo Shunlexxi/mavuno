@@ -108,7 +108,7 @@ export default function FarmersDirectory() {
                     {farmer.cropType}
                   </Badge>
                   <Badge variant="outline" className="text-xs">
-                    {farmer.farmSize}
+                    {farmer?.farmSize}
                   </Badge>
                 </div>
               </div>
@@ -119,21 +119,14 @@ export default function FarmersDirectory() {
                   <span className="text-muted-foreground">Total Borrowed</span>
                   <span className="font-semibold">
                     {Symbols[farmer?.preferredPool]}
-                    {farmer.totalBorrowed.toLocaleString()}
+                    {farmer?.totalBorrowed?.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Total Repaid</span>
                   <span className="font-semibold text-success">
                     {Symbols[farmer?.preferredPool]}
-                    {farmer.totalRepaid.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Current Loan</span>
-                  <span className="font-semibold">
-                    {Symbols[farmer?.preferredPool]}
-                    {0}
+                    {farmer?.totalRepaid?.toLocaleString()}
                   </span>
                 </div>
               </div>

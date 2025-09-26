@@ -42,9 +42,11 @@ export default function FarmerProfile() {
     {
       title: "Top Performer",
       icon: TrendingUp,
-      description: `${Math.round(
-        (farmer.totalRepaid / farmer.totalBorrowed) * 100
-      )}% repayment rate`,
+      description: loadingFarmer
+        ? "•••"
+        : `${Math.round(
+            (farmer?.totalRepaid / farmer?.totalBorrowed) * 100
+          )}% repayment rate`,
     },
   ];
 
