@@ -655,7 +655,7 @@ export default function PoolActionDialog({
             >
               {isProcessing ? "Processing..." : `${config.buttonText} `}
             </Button>
-            <Button onClick={mint} variant="outline">
+            <Button onClick={mint} type="button" variant="outline">
               <DropletsIcon />
               Mint
             </Button>
