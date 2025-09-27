@@ -101,7 +101,7 @@ export default function PoolActionDialog({
 
   const mint = async () => {
     try {
-      toast.loading("Onramping...");
+      toast.loading("Minting...");
 
       const mintHash = await adminClient.writeContract({
         abi: fiatAbi,
