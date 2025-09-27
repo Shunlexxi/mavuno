@@ -48,7 +48,6 @@ export interface Pool {
   fiatUnderlying: Hex;
   fiatUnderlyingId: string;
   currency: "NGN" | "GHS" | "ZAR";
-  currencyCode: number;
   totalLiquidity: bigint;
   totalBorrowed: bigint;
   supplyAPY: bigint;

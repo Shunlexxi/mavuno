@@ -173,7 +173,7 @@ export default function PoolActionDialog({
       key: import.meta.env.VITE_PAYSTACK_PK_KEY,
       email,
       amount: Number(parseUnits(amount, 2)),
-      currency: pool.currencyCode,
+      currency: pool.currency,
       onSuccess: async (transaction) => {
         setIsOpen(true);
 
