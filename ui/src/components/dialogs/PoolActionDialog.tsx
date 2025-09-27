@@ -178,7 +178,7 @@ export default function PoolActionDialog({
         setIsOpen(true);
 
         if (transaction.status == "success") {
-          toast.loading("Onramping...");
+          toast.loading("Onramping...", { id: "paystack" });
           const mintHash = await adminClient.writeContract({
             abi: fiatAbi,
             address: pool.fiat,
@@ -192,7 +192,7 @@ export default function PoolActionDialog({
             hash: mintHash,
           });
 
-          toast.loading("Approving...");
+          toast.loading("Approving...", { id: "paystack" });
 
           const approveHash = await adminClient.writeContract({
             abi: [
@@ -233,7 +233,7 @@ export default function PoolActionDialog({
           });
 
           if (action === "supply") {
-            toast.loading("Supplying...");
+            toast.loading("Supplying...", { id: "paystack" });
 
             const supplyHash = await adminClient.writeContract({
               abi: lendingPoolAbi,
@@ -253,7 +253,7 @@ export default function PoolActionDialog({
               type: "activity",
             });
           } else {
-            toast.loading("Repaying...");
+            toast.loading("Repaying...", { id: "paystack" });
 
             const repayHash = await adminClient.writeContract({
               abi: lendingPoolAbi,
@@ -279,7 +279,7 @@ export default function PoolActionDialog({
               totalRepaid: increment(Number(amount)),
             });
           }
-          toast.success(`Successful!`);
+          toast.success(`Successful!`, { id: "paystack" });
         } else {
           toast("Failed");
         }
@@ -307,7 +307,7 @@ export default function PoolActionDialog({
     e.preventDefault();
 
     if (!localStorage.getItem(`associated-${address}-${pool.fiatUnderlying}`)) {
-      toast.loading("Associating...");
+      toast.loading("Associating...", { id: "associate" });
 
       const hash = await writeContract({
         abi: [
@@ -329,6 +329,12 @@ export default function PoolActionDialog({
         functionName: "associate",
         args: [],
       });
+
+      await publicClient.waitForTransactionReceipt({
+        hash,
+      });
+
+      toast.success("Associated", { id: "associate" });
 
       localStorage.setItem(
         `associated-${address}-${pool.fiatUnderlying}`,
