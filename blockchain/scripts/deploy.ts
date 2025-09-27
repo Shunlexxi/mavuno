@@ -14,7 +14,7 @@ async function main() {
 
   const ngn = await Fiat.deploy();
   await ngn.waitForDeployment();
-  await ngn.createUnderlying("Nigeria Naira", "NGN", 7_776_000, {
+  await ngn.createUnderlying("Nigerian Naira", "NGN", 7_776_000, {
     value: ethers.parseEther("10"),
     gasLimit: 1_000_000,
   });
@@ -29,39 +29,39 @@ async function main() {
 
   await ngnUnderlying.associateToken(deployer.address, ngn.underlying());
 
-  const cedi = await Fiat.deploy();
-  await cedi.waitForDeployment();
-  await cedi.createUnderlying("Ghanaian Cedi", "CEDI", 7_776_000, {
+  const ghs = await Fiat.deploy();
+  await ghs.waitForDeployment();
+  await ghs.createUnderlying("Ghanaian Cedi", "GHS", 7_776_000, {
     value: ethers.parseEther("10"),
     gasLimit: 1_000_000,
   });
 
-  console.log("CEDI:", await cedi.getAddress());
-  console.log("CEDI underlying:", await cedi.underlying());
+  console.log("GHS:", await ghs.getAddress());
+  console.log("GHS underlying:", await ghs.underlying());
 
-  const cediUnderlying = await ethers.getContractAt(
+  const ghsUnderlying = await ethers.getContractAt(
     "IHederaTokenService",
-    await cedi.underlying()
+    await ghs.underlying()
   );
 
-  await cediUnderlying.associateToken(deployer.address, cedi.underlying());
+  await ghsUnderlying.associateToken(deployer.address, ghs.underlying());
 
-  const rand = await Fiat.deploy();
-  await rand.waitForDeployment();
-  await rand.createUnderlying("South African Rand", "RAND", 7_776_000, {
+  const zar = await Fiat.deploy();
+  await zar.waitForDeployment();
+  await zar.createUnderlying("South African Rand", "ZAR", 7_776_000, {
     value: ethers.parseEther("10"),
     gasLimit: 1_000_000,
   });
 
-  console.log("RAND:", await rand.getAddress());
-  console.log("RAND underlying:", await rand.underlying());
+  console.log("ZAR:", await zar.getAddress());
+  console.log("ZAR underlying:", await zar.underlying());
 
-  const randUnderlying = await ethers.getContractAt(
+  const zarUnderlying = await ethers.getContractAt(
     "IHederaTokenService",
-    await rand.underlying()
+    await zar.underlying()
   );
 
-  await randUnderlying.associateToken(deployer.address, rand.underlying());
+  await zarUnderlying.associateToken(deployer.address, zar.underlying());
 
   // --- Deploy Oracle ---
   const Oracle = await ethers.getContractFactory("Oracle");
@@ -72,8 +72,8 @@ async function main() {
 
   // Initialize oracle
   await oracle.setfiatPerHbar(await ngn.getAddress(), 1_900_000);
-  await oracle.setfiatPerHbar(await cedi.getAddress(), 1_500_000);
-  await oracle.setfiatPerHbar(await rand.getAddress(), 1_700_000);
+  await oracle.setfiatPerHbar(await ghs.getAddress(), 1_500_000);
+  await oracle.setfiatPerHbar(await zar.getAddress(), 1_700_000);
 
   // --- Deploy Farmer's Registry ---
   const FarmerRegistry = await ethers.getContractFactory("FarmerRegistry");
@@ -95,20 +95,20 @@ async function main() {
 
   // --- Create pools ---
   await mavunoFactory.createPool(await ngn.getAddress());
-  await mavunoFactory.createPool(await cedi.getAddress());
-  await mavunoFactory.createPool(await rand.getAddress());
+  await mavunoFactory.createPool(await ghs.getAddress());
+  await mavunoFactory.createPool(await zar.getAddress());
 
   console.log(
     "NGN pool:",
     await mavunoFactory.fiatToPool(await ngn.getAddress())
   );
   console.log(
-    "CEDI pool:",
-    await mavunoFactory.fiatToPool(await cedi.getAddress())
+    "GHS pool:",
+    await mavunoFactory.fiatToPool(await ghs.getAddress())
   );
   console.log(
-    "RAND pool:",
-    await mavunoFactory.fiatToPool(await rand.getAddress())
+    "ZAR pool:",
+    await mavunoFactory.fiatToPool(await zar.getAddress())
   );
 }
 
@@ -120,13 +120,13 @@ main().catch((err) => {
 // Deploying contracts with: 0x2531dCd3dC58559c19EEE09736443D026D40d5f5
 // NGN: 0x908E7B74887f47799c7d75c5a7FC5b25344Ef287
 // NGN underlying: 0x0000000000000000000000000000000000696A59
-// CEDI: 0x8e618CEeb54fB10b52Ab2CCD8839FC4A9b28CA75
-// CEDI underlying: 0x0000000000000000000000000000000000696A5B
-// RAND: 0xfd3DC4dC7dc401874215896180c1838C9476d2f1
-// RAND underlying: 0x0000000000000000000000000000000000696a63
+// GHS: 0x8e618CEeb54fB10b52Ab2CCD8839FC4A9b28CA75
+// GHS underlying: 0x0000000000000000000000000000000000696A5B
+// ZAR: 0xfd3DC4dC7dc401874215896180c1838C9476d2f1
+// ZAR underlying: 0x0000000000000000000000000000000000696a63
 // Oracle deployed at: 0xd964B9ecf0779595Db15912A05c546C418DD0f72
 // FarmerRegistry deployed at: 0x666942D4582D40375965150a774068a529312926
 // MavunoFactory deployed at: 0xA84a52665aAd57db7544c61df496fa31F8de1d37
 // NGN pool: 0xd09FEd685D3C1d390a3Ba6348d664619D65330c7
-// CEDI pool: 0xC40DbD39555823F30c28C72fF44b42dAEA35f048
-// RAND pool: 0xA2e03e5299c12f7231E820d291b530B7003Db803
+// GHS pool: 0xC40DbD39555823F30c28C72fF44b42dAEA35f048
+// ZAR pool: 0xA2e03e5299c12f7231E820d291b530B7003Db803

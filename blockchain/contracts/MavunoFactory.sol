@@ -8,7 +8,7 @@ import {FiatInterface} from "./interfaces/FiatInterface.sol";
 import {FarmerRegistryInterface} from "./interfaces/FarmerRegistryInterface.sol";
 
 /// @title MavunoFactory
-/// @notice Deploys and manages LendingPool contracts for different HTS fiat tokens (NGN, CEDI, RAND, etc.)
+/// @notice Deploys and manages LendingPool contracts for different HTS fiat tokens (NGN, GHS, ZAR, etc.)
 contract MavunoFactory is Ownable {
     error InvalidAddress();
     error PoolAlreadyExists();
@@ -52,7 +52,7 @@ contract MavunoFactory is Ownable {
         registry = _registry;
     }
 
-    /// @notice Create a new LendingPool for an HTS fiat token (NGN, CEDI, RAND, etc.)
+    /// @notice Create a new LendingPool for an HTS fiat token (NGN, GHS, ZAR, etc.)
     /// @param fiat Address of the Fiat (HTS Wrapped token)
     function createPool(
         address fiat

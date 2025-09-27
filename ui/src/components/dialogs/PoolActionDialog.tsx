@@ -65,8 +65,7 @@ export default function PoolActionDialog({
       title: `Supply ${pool.currency}`,
       description: `Add liquidity to the ${pool.currency} pool and earn interest`,
       buttonText: "Supply",
-      buttonText2:
-        pool.address == Contracts.NairaPool ? "Supply with Bank" : undefined,
+      buttonText2: "Supply with Bank",
       icon: DollarSign,
       color: "text-green-600",
     },
@@ -174,6 +173,7 @@ export default function PoolActionDialog({
       key: import.meta.env.VITE_PAYSTACK_PK_KEY,
       email,
       amount: Number(parseUnits(amount, 2)),
+      currency: pool.currencyCode,
       onSuccess: async (transaction) => {
         setIsOpen(true);
 

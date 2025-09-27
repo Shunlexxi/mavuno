@@ -11,29 +11,34 @@ export class PoolsService {
     address: Hex,
     account: Hex = zeroAddress
   ): Promise<Pool> {
-    let currency: "NGN" | "CEDI" | "RAND";
+    let currency: "NGN" | "GHS" | "ZAR";
     let fiat: Hex;
     let fiatUnderlying: Hex;
     let fiatUnderlyingId: string;
+    let currencyCode: number;
 
     switch (address) {
       case Contracts.CediPool:
-        currency = "CEDI";
+        currency = "GHS";
         fiat = Contracts.CediFiat;
         fiatUnderlying = Contracts.CediFiatUnderlying;
         fiatUnderlyingId = Contracts.CediFiatUnderlyingId;
+        currencyCode = 936;
         break;
       case Contracts.RandPool:
-        currency = "RAND";
+        currency = "ZAR";
         fiat = Contracts.RandFiat;
         fiatUnderlying = Contracts.RandFiatUnderlying;
         fiatUnderlyingId = Contracts.RandFiatUnderlyingId;
+        currencyCode = 710;
+
         break;
       default:
         currency = "NGN";
         fiat = Contracts.NairaFiat;
         fiatUnderlying = Contracts.NairaFiatUnderlying;
         fiatUnderlyingId = Contracts.NairaFiatUnderlyingId;
+        currencyCode = 566;
     }
 
     try {
@@ -141,6 +146,7 @@ export class PoolsService {
         fiatUnderlying,
         fiatUnderlyingId,
         currency,
+        currencyCode,
         totalLiquidity,
         totalBorrowed,
         supplyAPY,
@@ -160,6 +166,7 @@ export class PoolsService {
       return {
         address,
         currency,
+        currencyCode,
         fiat,
         fiatUnderlying,
         fiatUnderlyingId,

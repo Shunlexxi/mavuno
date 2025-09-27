@@ -47,7 +47,8 @@ export interface Pool {
   fiat: Hex;
   fiatUnderlying: Hex;
   fiatUnderlyingId: string;
-  currency: "NGN" | "CEDI" | "RAND";
+  currency: "NGN" | "GHS" | "ZAR";
+  currencyCode: number;
   totalLiquidity: bigint;
   totalBorrowed: bigint;
   supplyAPY: bigint;

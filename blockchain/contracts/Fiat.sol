@@ -10,7 +10,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {FiatInterface} from "./interfaces/FiatInterface.sol";
 
 /// @title Fiat Contract
-/// @notice Creates and manages HTS tokens for fiat currencies (NGN, CEDI, RAND, etc.)
+/// @notice Creates and manages HTS tokens for fiat currencies (NGN, GHS, ZAR, etc.)
 contract Fiat is
     HederaTokenService,
     KeyHelper,

@@ -258,10 +258,10 @@ export default function FarmerAuth({ mode }: FarmerAuthProps) {
                           NGN (Nigerian Naira)
                         </SelectItem>
                         <SelectItem value={Contracts.CediPool}>
-                          CEDI (Ghanaian Cedi)
+                          GHS (Ghanaian Cedi)
                         </SelectItem>
                         <SelectItem value={Contracts.RandPool}>
-                          RAND (South African Rand)
+                          ZAR (South African Rand)
                         </SelectItem>
                       </SelectContent>
                     </Select>
