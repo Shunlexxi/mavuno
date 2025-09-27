@@ -1,18 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { Pledge } from "@/types";
 import { pledgesService } from "@/services/pledgesService";
-import { PledgeFilters, CreatePledgeRequest } from "@/types/api";
+import { PledgeFilters, PledgeRequest } from "@/types/api";
 import { Hex } from "viem";
-import {
-  doc,
-  setDoc,
-  getDoc,
-  getDocs,
-  collection,
-  query,
-  getFirestore,
-  where,
-} from "firebase/firestore";
+
 interface UsePledgesState {
   pledges: Pledge[];
   loading: boolean;
@@ -23,7 +14,7 @@ interface UsePledgesReturn extends UsePledgesState {
   refetch: () => Promise<void>;
   createPledge: (
     pledgeAddress: Hex,
-    pledgeData: CreatePledgeRequest
+    pledgeData: PledgeRequest
   ) => Promise<Pledge | null>;
 }
 
@@ -59,12 +50,12 @@ export function usePledges(filters?: PledgeFilters): UsePledgesReturn {
         loading: false,
       }));
     }
-  }, []);
+  }, [filters]);
 
   const createPledge = useCallback(
     async (
       pledgeAddress: Hex,
-      pledgeData: CreatePledgeRequest
+      pledgeData: PledgeRequest
     ): Promise<Pledge | null> => {
       try {
         const response = await pledgesService.createPledge(
