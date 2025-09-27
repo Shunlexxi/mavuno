@@ -362,6 +362,8 @@ export default function PoolActionDialog({
           type: "activity",
         });
 
+        toast.success("Successful");
+
         onClose();
       } catch (error) {
         toast(error?.message);
@@ -391,6 +393,8 @@ export default function PoolActionDialog({
           content: `You supplied ${Symbols[pool.address]}${amount} .`,
           type: "activity",
         });
+
+        toast.success("Successful");
 
         onClose();
       } catch (error) {
@@ -424,6 +428,8 @@ export default function PoolActionDialog({
           content: `You borrowed ${Symbols[pool.address]}${amount} .`,
           type: "activity",
         });
+
+        toast.success("Successful");
 
         onClose();
       } catch (error) {
@@ -459,6 +465,8 @@ export default function PoolActionDialog({
           content: `You repaid ${Symbols[pool.address]}${amount}`,
           type: "activity",
         });
+
+        toast.success("Successful");
 
         onClose();
       } catch (error) {
