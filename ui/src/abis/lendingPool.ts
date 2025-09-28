@@ -148,6 +148,11 @@ export const lendingPoolAbi = [
   },
   {
     inputs: [],
+    name: "InvalidSignature",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "LTVBelowThreshold",
     type: "error",
   },
@@ -174,11 +179,6 @@ export const lendingPoolAbi = [
   {
     inputs: [],
     name: "OracleZero",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "OverflowAfterPay",
     type: "error",
   },
   {
@@ -216,6 +216,11 @@ export const lendingPoolAbi = [
   {
     inputs: [],
     name: "ReentrancyGuardReentrantCall",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "SignatureExpired",
     type: "error",
   },
   {
@@ -410,6 +415,19 @@ export const lendingPoolAbi = [
   },
   {
     inputs: [],
+    name: "DOMAIN_SEPARATOR",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "LIQUIDATION_BPS",
     outputs: [
       {
@@ -543,6 +561,50 @@ export const lendingPoolAbi = [
   {
     inputs: [
       {
+        internalType: "int64",
+        name: "amount",
+        type: "int64",
+      },
+      {
+        internalType: "address",
+        name: "farmer",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "deadline",
+        type: "uint256",
+      },
+      {
+        internalType: "uint8",
+        name: "v",
+        type: "uint8",
+      },
+      {
+        internalType: "bytes32",
+        name: "r",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes32",
+        name: "s",
+        type: "bytes32",
+      },
+    ],
+    name: "borrowWithPermit",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "address",
         name: "farmer",
         type: "address",
@@ -624,25 +686,6 @@ export const lendingPoolAbi = [
         type: "address",
       },
     ],
-    name: "ltvBps",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "farmer",
-        type: "address",
-      },
-    ],
     name: "liquidate",
     outputs: [],
     stateMutability: "nonpayable",
@@ -662,6 +705,25 @@ export const lendingPoolAbi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "farmer",
+        type: "address",
+      },
+    ],
+    name: "ltvBps",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "name",
     outputs: [
@@ -669,6 +731,25 @@ export const lendingPoolAbi = [
         internalType: "string",
         name: "",
         type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "nonces",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",

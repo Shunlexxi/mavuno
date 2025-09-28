@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useState } from "react";
 import {
   Dialog,
@@ -18,20 +19,19 @@ import {
   DollarSign,
   DropletsIcon,
 } from "lucide-react";
-import { Bank, BankAccount, CountryType, Pool } from "@/types";
+import { Bank, BankAccount, Pool } from "@/types";
 import { toast } from "sonner";
 import Paystack from "@paystack/inline-js";
-import { formatUnits, Hex, parseUnits } from "viem";
+import { formatUnits, Hex, parseSignature, parseUnits } from "viem";
 import { lendingPoolAbi } from "@/abis/lendingPool";
 import {
   adminClient,
-  Contracts,
   MAX_BPS_POW,
   publicClient,
   Symbols,
 } from "@/utils/constants";
 import { hederaTestnet } from "viem/chains";
-import { useAccount } from "wagmi";
+import { useAccount, useSignTypedData } from "wagmi";
 import { fiatAbi } from "@/abis/fiat";
 import { useWriteContract } from "@/utils/hedera";
 import { doc, updateDoc, getFirestore, increment } from "firebase/firestore";
@@ -43,6 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { buildBorrowPermitParams } from "@/utils/permit";
 
 interface PoolActionDialogProps {
   pool: Pool;
@@ -72,6 +73,7 @@ export default function PoolActionDialog({
   const [isOpen, setIsOpen] = useState(false);
   const { address } = useAccount();
   const { writeContract } = useWriteContract();
+  const { signTypedDataAsync } = useSignTypedData();
 
   const actionConfig = {
     supply: {
@@ -315,8 +317,97 @@ export default function PoolActionDialog({
     });
   };
 
+  const borrowWithPermit = async () => {
+    try {
+      setIsProcessing(true);
+
+      const nonce = (await publicClient.readContract({
+        abi: lendingPoolAbi,
+        address: pool.address,
+        functionName: "nonces",
+        args: [address],
+        authorizationList: undefined,
+      })) as bigint;
+
+      const nextNonce = Number(nonce) + 1;
+      const deadline = Math.ceil(Date.now() / 1_000) + 3_600;
+
+      toast.info("Sign message to permit borrow.", { id: "borrowWithPermit" });
+
+      const params = buildBorrowPermitParams(
+        hederaTestnet.id,
+        pool.address,
+        "LendingPool",
+        "1",
+        address,
+        parseUnits(amount, 2),
+        nextNonce,
+        deadline
+      ) as any;
+
+      const signature = await signTypedDataAsync(params);
+      const { v, r, s } = parseSignature(signature);
+
+      toast.loading("Borrowing with permit.", { id: "borrowWithPermit" });
+
+      const borrowHash = await adminClient.writeContract({
+        abi: lendingPoolAbi,
+        address: pool.address,
+        functionName: "borrowWithPermit",
+        args: [parseUnits(amount, 2), address, deadline, v, r, s],
+        chain: hederaTestnet,
+        account: adminClient.account,
+      });
+
+      await publicClient.waitForTransactionReceipt({
+        hash: borrowHash,
+      });
+
+      toast.loading("Initiating bank transfer.", { id: "borrowWithPermit" });
+
+      const sent = await handlePaystackTransfer(amount, borrowHash);
+
+      if (!sent) {
+        return toast.error("Failed to send amount to bank.");
+      }
+
+      const burnHash = await adminClient.writeContract({
+        abi: fiatAbi,
+        address: pool.fiat,
+        functionName: "burn",
+        args: [adminClient.account.address, parseUnits(amount, 2)],
+        chain: hederaTestnet,
+        account: adminClient.account,
+      });
+
+      await publicClient.waitForTransactionReceipt({
+        hash: burnHash,
+      });
+
+      const db = getFirestore();
+      await updateDoc(doc(db, "farmers", address), {
+        totalBorrowed: increment(Number(amount)),
+      });
+
+      await timelineService.createTimelinePost(address, {
+        content: `You borrowed ${Symbols[pool.address]}${amount} to bank.`,
+        type: "activity",
+      });
+
+      toast.success("Successful", { id: "borrowWithPermit" });
+
+      onClose();
+    } catch (error) {
+      toast(error?.message);
+    } finally {
+      setIsProcessing(false);
+      setIsOpen(false);
+      setAmount("");
+    }
+  };
+
   const handlePaystackTransfer = async (
-    transferAnount: string,
+    txAmount: string,
     txReference: Hex
   ): Promise<boolean> => {
     try {
@@ -352,7 +443,7 @@ export default function PoolActionDialog({
         },
         body: JSON.stringify({
           source: "balance",
-          amount: Number(parseUnits(transferAnount, 2)),
+          amount: Number(parseUnits(txAmount, 2)),
           recipient: recipientCode,
           reference: txReference,
           reason: action,

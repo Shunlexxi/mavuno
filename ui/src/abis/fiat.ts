@@ -39,6 +39,17 @@ export const fiatAbi = [
         type: "int256",
       },
     ],
+    name: "TokenBurnFailed",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "int256",
+        name: "responseCode",
+        type: "int256",
+      },
+    ],
     name: "TokenCreationFailed",
     type: "error",
   },
@@ -121,6 +132,25 @@ export const fiatAbi = [
       {
         indexed: true,
         internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "int64",
+        name: "amount",
+        type: "int64",
+      },
+    ],
+    name: "TokensBurned",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
         name: "to",
         type: "address",
       },
@@ -133,6 +163,24 @@ export const fiatAbi = [
     ],
     name: "TokensMinted",
     type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        internalType: "int64",
+        name: "amount",
+        type: "int64",
+      },
+    ],
+    name: "burn",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
     inputs: [

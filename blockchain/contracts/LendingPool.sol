@@ -11,7 +11,6 @@ import {OracleInterface} from "./interfaces/OracleInterface.sol";
 import {FarmerRegistryInterface} from "./interfaces/FarmerRegistryInterface.sol";
 import {LendingPoolInterface} from "./interfaces/LendingPoolInterface.sol";
 import {InterestLib} from "./libs/InterestLib.sol";
-import {PermitLib} from "./libs/PermitLib.sol";
 import {PledgeManagerInterface} from "./interfaces/PledgeManagerInterface.sol";
 import {LendingPoolLogic} from "./libs/LendingPoolLogic.sol";
 
@@ -158,7 +157,7 @@ contract LendingPool is
     ) external nonReentrant returns (bool) {
         uint256 nonce = nonces[farmer]++;
 
-        PermitLib.validateBorrowPermit(
+        LendingPoolLogic.validateBorrowPermit(
             DOMAIN_SEPARATOR,
             farmer,
             amount,
@@ -304,6 +303,8 @@ contract LendingPool is
         if (bps < 0 || bps > MAX_BPS) revert LendingPoolLogic.ZeroAmount();
         borrowRateBp = bps;
     }
+
+    // ========== Others ========== //
 
     receive() external payable {}
 
