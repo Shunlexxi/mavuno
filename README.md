@@ -2,12 +2,6 @@
 
 **Empowering farmers through community-backed micro-lending on Hedera Hashgraph**
 
-Mavuno is a decentralized micro-lending protocol built for agriculture in Africa. It adapts DeFi lending for farmers who cannot provide heavy collateral by introducing pledgers. Pledgers stake HBAR to guarantee farmers, allowing them to borrow undercollateralized loans in tokenized local fiat.
-
-The protocol runs on Hedera Hashgraph with transparency, fairness, and direct on-ramp/off-ramp access to local banks and ATM cards.
-
----
-
 ## Introduction
 
 DeFi platforms like AAVE work well for crypto-native users but fail in agricultural contexts because farmers rarely hold capital to secure loans. Mavuno solves this problem using pledgers instead of collateral. Farmers get backing from a community, borrow from lending pools, and access real cash through local channels.
