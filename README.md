@@ -2,66 +2,111 @@
 
 **Empowering farmers through community-backed micro-lending on Hedera Hashgraph**
 
-## Introduction
+Mavuno is a decentralized micro-lending protocol designed to provide farmers in Africa with access to credit. Instead of requiring collateral, farmers are backed by pledgers who stake HBAR. Farmers borrow undercollateralized loans in tokenized local fiat from lending pools and access real cash directly through banks and ATM cards.
 
-DeFi platforms like AAVE work well for crypto-native users but fail in agricultural contexts because farmers rarely hold capital to secure loans. Mavuno solves this problem using pledgers instead of collateral. Farmers get backing from a community, borrow from lending pools, and access real cash through local channels.
-
-This system revives the traditional guarantor model common in African lending circles, but now made immutable, transparent, and borderless through Hedera.
+The system is transparent, secure, and designed to serve agriculture while enabling global pledgers to support local farmers.
 
 ---
 
-## Smart Contract Logic
+## Contract Architecture
 
-Mavuno is powered by three main contracts:
+The Mavuno protocol is powered by three core contracts:
 
-### 1. **FarmerRegistry.sol**
+1. **FarmerRegistry** – Registers farmers and deploys their personal `PledgeManager`.
+2. **PledgeManager** – Manages pledges of HBAR for each farmer.
+3. **LendingPool** – Handles liquidity pools, borrowing, repayment, and liquidation.
 
-* Handles registration of farmers on the platform.
-* Each farmer has a profile linked to their company and activity.
-* Farmers can optionally complete KYC to get verified status.
-* Tracks farmer timelines and updates to attract pledgers.
+```mermaid
+flowchart TD
+    subgraph Registry
+        FR[FarmerRegistry]
+    end
 
-**Core Functions:**
+    subgraph Pool
+        LP[LendingPool]
+    end
 
-* `registerFarmer(address farmer, string metadata)` – creates a farmer profile.
-* `verifyFarmer(address farmer)` – marks a farmer as verified after KYC.
-* `updateTimeline(address farmer, string activity)` – lets farmers update farming activity timelines.
+    subgraph Pledges
+        PM[PledgeManager (per farmer)]
+    end
 
----
-
-### 2. **PledgeManager.sol**
-
-* Replaces the collateral system used in AAVE.
-* Pledgers deposit HBAR to back farmers.
-* Farmers can activate or deactivate pledge usage.
-* Pledgers can withdraw when pledge is inactive, and add more at any time.
-* Tracks total pledge balances per farmer.
-
-**Core Functions:**
-
-* `pledge(address farmer, uint256 amount)` – pledger backs a farmer.
-* `withdrawPledge(address farmer, uint256 amount)` – pledger withdraws when farmer has deactivated usage.
-* `activatePledges(address farmer)` / `deactivatePledges(address farmer)` – farmer controls pledge usage.
-* `getTotalPledges(address farmer)` – returns total backing for a farmer.
+    FR --> PM
+    PM --> LP
+    LP --> FR
+```
 
 ---
 
-### 3. **LendingPool.sol**
+## Contract Details
 
-* Manages pools for each supported African fiat.
-* Farmers borrow tokenized fiat against total pledges.
-* Loan-to-Value (LTV) ratio fixed at 70%.
-* Liquidation happens at 96% to protect pool liquidity.
-* LPs provide liquidity and earn interest from repayments.
-* Protocol fee is collected from interest and repayment flows.
+### 1. FarmerRegistry.sol
 
-**Core Functions:**
+Registers farmers on-chain and links them to their off-chain profile (stored on IPFS). Each farmer automatically gets their own `PledgeManager` contract for handling pledges.
 
-* `deposit(uint256 amount)` – LP deposits fiat tokens into the pool and receives LP tokens.
-* `borrow(address farmer, uint256 amount)` – farmer borrows against pledges.
-* `repay(address farmer, uint256 amount)` – farmer repays loan + interest.
-* `liquidate(address farmer)` – triggered if farmer’s loan health falls below threshold.
-* `withdraw(uint256 lpTokens)` – LP withdraws underlying assets from the pool.
+**Key Features**
+
+* Register farmer profiles with IPFS metadata.
+* Deploys a dedicated `PledgeManager` for each farmer.
+* Maintains mapping of farmers → managers.
+* Supports admin overrides for emergency profile updates.
+
+**Events**
+
+* `FarmerRegistered(address farmer, address pool, string profileUri, address manager)`
+* `FarmerUpdated(address farmer, string profileUri)`
+
+---
+
+### 2. PledgeManager.sol
+
+A **per-farmer contract** where pledgers stake HBAR in return for LP tokens (`fLP`). Farmers can activate or deactivate pledges, and liquidation flows through this contract.
+
+**Key Features**
+
+* Pledgers deposit HBAR → receive `fLP` tokens.
+* Farmers can deactivate pledges, enabling withdrawal by pledgers.
+* LendingPool can liquidate collateral if a farmer’s loan health is below threshold.
+* Farmer can perform emergency withdrawals if no active loans exist.
+
+**Events**
+
+* `Pledged(address pledger, uint256 amount)`
+* `Withdrawn(address pledger, uint256 amount)`
+* `Liquidated(address farmer, address liquidator, uint256 amount)`
+* `ActiveStatusChanged(bool active)`
+
+---
+
+### 3. LendingPool.sol
+
+Handles all liquidity, loans, and repayments for a specific fiat-backed pool. Farmers borrow tokenized fiat against their pledges. LPs provide liquidity and earn interest.
+
+**Key Features**
+
+* **Liquidity Providers:**
+
+  * `supply(amount, behalfOf)` – Deposit fiat, mint pool LP tokens (`pLP`).
+  * `withdraw(amount)` – Burn `pLP` to withdraw fiat.
+* **Borrowers (Farmers):**
+
+  * `borrow(amount)` – Borrow fiat against pledges.
+  * `repay(amount, behalfOf)` – Repay debt and accrued interest.
+* **Liquidation:**
+
+  * `liquidate(farmer)` – Triggered when health factor < threshold (96%).
+  * Calls the farmer’s `PledgeManager` to seize pledged HBAR.
+* **Parameters:**
+
+  * Loan-to-Value (LTV): 70%
+  * Borrow rate: 24% APR (2,400 BPS)
+  * Liquidation threshold: 96%
+
+**Events**
+
+* `Supplied(address user, int64 amount, uint256 minted)`
+* `Withdrawn(address user, int64 amount, uint256 burned)`
+* `Borrowed(address farmer, int64 amount, int64 newPrincipal)`
+* `Repaid(address farmer, int64 amount, int64 remaining, int64 interestPaid)`
 
 ---
 
@@ -69,29 +114,41 @@ Mavuno is powered by three main contracts:
 
 ```mermaid
 flowchart TD
-    A[Pledgers deposit HBAR] --> B[Farmer activates pledges]
-    B --> C[Borrow loan in tokenized local fiat]
-    C --> D[Funds sent to bank/ATM card]
-    D --> E[Farmer uses funds for farming]
-    E --> F[Repay loan in fiat + interest]
-    F --> G[Lending Pool balance grows]
-    G --> H[LPs earn yield + protocol fee]
+    A[Pledger deposits HBAR into Farmer PledgeManager] --> B[Farmer activates pledges]
+    B --> C[Farmer borrows from LendingPool in tokenized fiat]
+    C --> D[Funds off-ramped to farmer's bank/ATM]
+    D --> E[Farmer uses funds for agriculture]
+    E --> F[Farmer repays loan + interest]
+    F --> G[LendingPool grows balance]
+    G --> H[LPs earn yield + protocol fee taken]
+    H --> I[If unhealthy → liquidation triggers in PledgeManager]
 ```
+
+---
+
+## Key Features Recap
+
+* Community-backed pledging instead of collateral.
+* Undercollateralized loans in tokenized local fiat.
+* Direct bank/ATM access for farmers.
+* Immutable, corruption-resistant, and transparent.
+* Farmers can publish timelines and updates to attract pledgers.
+* Farmers may set rewards for pledgers.
 
 ---
 
 ## Business Model
 
-* Small fee taken from interest repaid in pools.
-* Small fee on on-ramp and off-ramp operations.
-  
+* **Protocol fees:** Small % of interest paid back in pools.
+* **On/off-ramp fees:** Small fee for converting tokenized fiat.
+
 ---
 
 ## Tech Stack
 
+* **Smart Contracts:** Solidity, Hedera Token Service, OpenZeppelin
 * **Frontend:** React + TypeScript
-* **Smart Contracts:** Solidity + Hashgraph SDK + Ethers + Hardhat
-* **Database/Auth:** Firebase (temporary)
-* **UI:** TailwindCSS + Lucide Icons
+* **Storage:** IPFS (farmer profiles)
+* **Backend/Indexing:** Firebase (temporary), The Graph (upcoming)
+* **UI:** TailwindCSS, Lucide Icons
 * **Payments:** Paystack integration
-* **Upcoming:** The Graph subgraph to replace Firebase for indexing
