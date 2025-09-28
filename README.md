@@ -16,24 +16,7 @@ The Mavuno protocol is powered by three core contracts:
 2. **PledgeManager** – Manages pledges of HBAR for each farmer.
 3. **LendingPool** – Handles liquidity pools, borrowing, repayment, and liquidation.
 
-```mermaid
-flowchart TD
-    subgraph Registry
-        FR[FarmerRegistry]
-    end
-
-    subgraph Pool
-        LP[LendingPool]
-    end
-
-    subgraph Pledges
-        PM[PledgeManager (per farmer)]
-    end
-
-    FR --> PM
-    PM --> LP
-    LP --> FR
-```
+<img width="811" height="501" alt="mavuno2 drawio" src="https://github.com/user-attachments/assets/bd7da69f-7fd3-4949-8058-47f59b0cee46" />
 
 ---
 
