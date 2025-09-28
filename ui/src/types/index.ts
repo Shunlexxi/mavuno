@@ -48,6 +48,7 @@ export interface Pool {
   fiatUnderlying: Hex;
   fiatUnderlyingId: string;
   currency: "NGN" | "GHS" | "ZAR";
+  country: CountryType;
   totalLiquidity: bigint;
   totalBorrowed: bigint;
   supplyAPY: bigint;
@@ -57,7 +58,32 @@ export interface Pool {
   withdrawable: bigint;
   borrow: bigint;
   outstanding: bigint;
-  healthFactor: bigint;
+  ltvBps: bigint;
   totalPledge: bigint;
   active: boolean;
+}
+
+export type CountryType = "nigeria" | "ghana" | "south africa";
+
+export interface Bank {
+  name: string;
+  slug: string;
+  code: string;
+  longcode: string;
+  gateway: string | null;
+  pay_with_bank: boolean;
+  active: boolean;
+  is_deleted: boolean;
+  country: string;
+  currency: string;
+  type: string;
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BankAccount {
+  account_number: number;
+  account_name: string;
+  bank_id: number;
 }

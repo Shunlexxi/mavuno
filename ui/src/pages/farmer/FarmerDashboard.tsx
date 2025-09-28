@@ -247,10 +247,10 @@ export default function FarmerDashboard() {
                   HealthFactor
                 </span>
                 <Badge variant="secondary">
-                  {pool?.healthFactor > parseEther("1")
+                  {pool?.ltvBps > parseEther("1")
                     ? "Infinity"
                     : Number(
-                        formatUnits(pool?.healthFactor ?? 0n, 0)
+                        formatUnits(pool?.ltvBps ?? 0n, 0)
                       ).toLocaleString()}
                 </Badge>
               </div>

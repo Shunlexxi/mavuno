@@ -11,6 +11,7 @@ import {OracleInterface} from "./interfaces/OracleInterface.sol";
 import {FarmerRegistryInterface} from "./interfaces/FarmerRegistryInterface.sol";
 import {LendingPoolInterface} from "./interfaces/LendingPoolInterface.sol";
 import {InterestLib} from "./libs/InterestLib.sol";
+import {PermitLib} from "./libs/PermitLib.sol";
 import {PledgeManagerInterface} from "./interfaces/PledgeManagerInterface.sol";
 import {LendingPoolLogic} from "./libs/LendingPoolLogic.sol";
 
@@ -39,6 +40,9 @@ contract LendingPool is
     int64 public constant MAX_BPS = 10_000;
     int64 public constant LIQUIDATION_BPS = 9_600;
 
+    bytes32 public DOMAIN_SEPARATOR;
+    mapping(address => uint256) public nonces;
+
     constructor(
         address _controller,
         address _oracle,
@@ -58,6 +62,22 @@ contract LendingPool is
         registry = FarmerRegistryInterface(_registry);
 
         associateToken(address(this), fiat.underlying());
+
+        uint256 chainId;
+        assembly {
+            chainId := chainid()
+        }
+        DOMAIN_SEPARATOR = keccak256(
+            abi.encode(
+                keccak256(
+                    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+                ),
+                keccak256(bytes("LendingPool")),
+                keccak256(bytes("1")),
+                chainId,
+                address(this)
+            )
+        );
     }
 
     /* ========== LP Functions ========== */
@@ -125,8 +145,36 @@ contract LendingPool is
     }
 
     function borrow(int64 amount) external nonReentrant returns (bool) {
-        uint256 maxBorrowable = borrowable(msg.sender);
-        int64 currentOutstanding = outstanding(msg.sender);
+        return _borrow(amount, msg.sender);
+    }
+
+    function borrowWithPermit(
+        int64 amount,
+        address farmer,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external nonReentrant returns (bool) {
+        uint256 nonce = nonces[farmer]++;
+
+        PermitLib.validateBorrowPermit(
+            DOMAIN_SEPARATOR,
+            farmer,
+            amount,
+            nonce,
+            deadline,
+            v,
+            r,
+            s
+        );
+
+        return _borrow(amount, farmer);
+    }
+
+    function _borrow(int64 amount, address behalfOf) internal returns (bool) {
+        uint256 maxBorrowable = borrowable(behalfOf);
+        int64 currentOutstanding = outstanding(behalfOf);
 
         LendingPoolLogic.validateBorrow(
             amount,
@@ -136,7 +184,7 @@ contract LendingPool is
             currentOutstanding
         );
 
-        int64 newPrincipal = farmerPositions[msg.sender].updateBorrowerPosition(
+        int64 newPrincipal = farmerPositions[behalfOf].updateBorrowerPosition(
             amount,
             borrowRateBp,
             MAX_BPS
@@ -145,7 +193,7 @@ contract LendingPool is
         totalBorrowed += amount;
         transferToken(fiat.underlying(), address(this), msg.sender, amount);
 
-        emit Borrowed(msg.sender, amount, newPrincipal);
+        emit Borrowed(behalfOf, amount, newPrincipal);
         return true;
     }
 
@@ -168,20 +216,25 @@ contract LendingPool is
         LendingPoolLogic.BorrowerPosition storage position = farmerPositions[
             behalfOf
         ];
-        (int64 remainingPrincipal, int64 interestPaid) = position
-            .processRepayment(amount, borrowRateBp, MAX_BPS, totalBorrowed);
 
-        totalBorrowed -= amount;
+        (
+            int64 remainingPrincipal,
+            int64 interestPaid,
+            int64 principalRepaid
+        ) = position.processRepayment(amount, borrowRateBp, MAX_BPS);
+
+        totalBorrowed -= principalRepaid;
         totalSupplied += interestPaid;
 
         transferToken(fiat.underlying(), msg.sender, address(this), amount);
+
         emit Repaid(behalfOf, amount, remainingPrincipal, interestPaid);
         return remainingPrincipal;
     }
 
-    function healthFactorLTV(address farmer) public view returns (uint256) {
+    function ltvBps(address farmer) public view returns (uint256) {
         return
-            LendingPoolLogic.calculateHealthFactor(
+            LendingPoolLogic.calculateLtvBps(
                 farmer,
                 farmerPositions[farmer],
                 registry,

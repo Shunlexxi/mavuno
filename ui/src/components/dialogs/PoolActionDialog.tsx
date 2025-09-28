@@ -18,10 +18,10 @@ import {
   DollarSign,
   DropletsIcon,
 } from "lucide-react";
-import { Pool } from "@/types";
+import { Bank, BankAccount, CountryType, Pool } from "@/types";
 import { toast } from "sonner";
 import Paystack from "@paystack/inline-js";
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits, Hex, parseUnits } from "viem";
 import { lendingPoolAbi } from "@/abis/lendingPool";
 import {
   adminClient,
@@ -36,6 +36,13 @@ import { fiatAbi } from "@/abis/fiat";
 import { useWriteContract } from "@/utils/hedera";
 import { doc, updateDoc, getFirestore, increment } from "firebase/firestore";
 import timelineService from "@/services/timelineService";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 interface PoolActionDialogProps {
   pool: Pool;
@@ -53,6 +60,12 @@ export default function PoolActionDialog({
   const [amount, setAmount] = useState("");
   const [balance, setBalance] = useState(0);
   const [borrowable, setBorrowable] = useState(0);
+  const [banks, setBanks] = useState<Bank[]>([]);
+  const [bankAccount, setBankAccount] = useState<BankAccount | undefined>(
+    undefined
+  );
+  const [accountNumber, setAccountNumber] = useState("");
+  const [bankCode, setBankCode] = useState<number | undefined>(undefined);
   const [email, setEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isProcessingWithBank, setIsProcessingWithBank] = useState(false);
@@ -73,7 +86,7 @@ export default function PoolActionDialog({
       title: `Borrow ${pool.currency}`,
       description: `Borrow ${pool.currency} against your HBAR collateral`,
       buttonText: "Borrow",
-      buttonText2: undefined,
+      buttonText2: "Borrow to Bank",
       icon: TrendingUp,
       color: "text-blue-600",
     },
@@ -82,15 +95,14 @@ export default function PoolActionDialog({
       description: `Remove your supplied ${pool.currency} from the pool`,
       buttonText: "Withdraw",
       icon: Wallet,
-      buttonText2: undefined,
+      buttonText2: "Withdraw to Bank",
       color: "text-orange-600",
     },
     repay: {
       title: `Repay ${pool.currency}`,
       description: `Repay your borrowed ${pool.currency}`,
       buttonText: "Repay",
-      buttonText2:
-        pool.address == Contracts.NairaPool ? "Repay with Bank" : undefined,
+      buttonText2: "Repay with Bank",
       icon: AlertTriangle,
       color: "text-red-600",
     },
@@ -303,6 +315,60 @@ export default function PoolActionDialog({
     });
   };
 
+  const handlePaystackTransfer = async (
+    transferAnount: string,
+    txReference: Hex
+  ): Promise<boolean> => {
+    try {
+      const response = await fetch(
+        "https://api.paystack.co/transferrecipient",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${import.meta.env.VITE_PAYSTACK_SK_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: "nuban",
+            name: bankAccount.account_name,
+            account_number: bankAccount.account_number,
+            bank_code: bankCode,
+            currency: pool.currency,
+          }),
+        }
+      );
+
+      const recipient = await response.json();
+
+      const recipientCode = recipient?.data?.recipient_code;
+
+      if (!recipientCode) return false;
+
+      const transferResponse = await fetch("https://api.paystack.co/transfer", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${import.meta.env.VITE_PAYSTACK_SK_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          source: "balance",
+          amount: Number(parseUnits(transferAnount, 2)),
+          recipient: recipientCode,
+          reference: txReference,
+          reason: action,
+        }),
+      });
+
+      const transfer = await transferResponse.json();
+
+      const transferCode = transfer?.data?.transfer_code;
+
+      return Boolean(transferCode);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -489,6 +555,7 @@ export default function PoolActionDialog({
   };
 
   const getBorrowable = useCallback(async () => {
+    if (!isOpen) return;
     try {
       const result = (await publicClient.readContract({
         abi: lendingPoolAbi,
@@ -505,15 +572,16 @@ export default function PoolActionDialog({
     } catch (error) {
       console.log(error);
     }
-  }, [address, pool]);
+  }, [address, pool, isOpen]);
 
   const getBalance = useCallback(async () => {
+    if (!isOpen) return;
     try {
-      const accountInfo = await fetch(
+      const response = await fetch(
         `https://testnet.mirrornode.hedera.com/api/v1/accounts/${address}`
       );
 
-      const info = await accountInfo.json();
+      const info = await response.json();
 
       const token = (info?.balance?.tokens || []).find(
         (t) => t.token_id.toString() == pool.fiatUnderlyingId
@@ -523,7 +591,58 @@ export default function PoolActionDialog({
     } catch (error) {
       console.log(error);
     }
-  }, [address, pool]);
+  }, [address, pool, isOpen]);
+
+  const getBanks = useCallback(async () => {
+    if (!isOpen) return;
+    try {
+      const response = await fetch(
+        `https://api.paystack.co/bank?country=${pool.country}&currency=${pool.currency}`,
+        {
+          headers: {
+            Authorization: `Bearer ${import.meta.env.VITE_PAYSTACK_SK_KEY}`,
+          },
+        }
+      );
+
+      const banks = await response.json();
+
+      setBanks(banks?.data ?? []);
+    } catch (error) {
+      console.log(error);
+    }
+  }, [pool, isOpen]);
+
+  const resolveAccount = useCallback(async () => {
+    console.log(bankCode);
+    console.log(accountNumber);
+
+    if (!bankCode || accountNumber.length != 10) {
+      return setBankAccount(undefined);
+    }
+
+    try {
+      const response = await fetch(
+        `https://api.paystack.co/bank/resolve?account_number=${accountNumber}&bank_code=${bankCode}`,
+        {
+          headers: {
+            Authorization: `Bearer ${import.meta.env.VITE_PAYSTACK_SK_KEY}`,
+          },
+        }
+      );
+
+      const account = await response.json();
+
+      if (!account.status && account?.message) {
+        toast.error(account.message);
+      }
+
+      setBankAccount(account?.data);
+    } catch (error) {
+      console.log(error);
+      setBankAccount(undefined);
+    }
+  }, [bankCode, accountNumber]);
 
   useEffect(() => {
     getBorrowable();
@@ -532,6 +651,14 @@ export default function PoolActionDialog({
   useEffect(() => {
     getBalance();
   }, [getBalance]);
+
+  useEffect(() => {
+    getBanks();
+  }, [getBanks]);
+
+  useEffect(() => {
+    resolveAccount();
+  }, [resolveAccount]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -655,22 +782,65 @@ export default function PoolActionDialog({
             >
               {isProcessing ? "Processing..." : `${config.buttonText} `}
             </Button>
-            <Button onClick={mint} type="button" variant="outline">
-              <DropletsIcon />
-              Mint
-            </Button>
+            {(action === "supply" || action === "repay") && (
+              <Button onClick={mint} type="button" variant="outline">
+                <DropletsIcon />
+                Mint free {pool.currency}
+              </Button>
+            )}
           </div>
 
+          <Separator />
+
           {/* Email Input */}
-          {config.buttonText2 && (
-            <Input
-              id="email"
-              type="email"
-              placeholder="sarah@gmail.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          )}
+          {config.buttonText2 &&
+            (action === "supply" || action === "repay") && (
+              <Input
+                id="email"
+                type="email"
+                placeholder="sarah@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            )}
+
+          {/* Bank Input */}
+          {config.buttonText2 &&
+            (action === "borrow" || action === "withdraw") && (
+              <div className="space-y-2">
+                <Select
+                  onValueChange={(value) => {
+                    setBankCode(Number(value));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select bank" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {banks?.map((bank) => {
+                      return (
+                        <SelectItem value={bank.code}>{bank.name}</SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+
+                <div className="space-y-2">
+                  <Label htmlFor="accountNumber">Account Number</Label>
+                  <Input
+                    id="accountNumber"
+                    type="number"
+                    placeholder="0001234567"
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                  />
+                </div>
+
+                {bankAccount && (
+                  <p className="text-sm">{bankAccount.account_name}</p>
+                )}
+              </div>
+            )}
 
           {config.buttonText2 && (
             <Button

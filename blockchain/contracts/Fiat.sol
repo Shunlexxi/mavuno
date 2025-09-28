@@ -21,13 +21,11 @@ contract Fiat is
     error TokenAlreadyCreated();
     error TokenCreationFailed(int256 responseCode);
     error TokenMintFailed(int256 responseCode);
+    error TokenBurnFailed(int256 responseCode);
     error TokenTransferFailed(int256 responseCode);
 
     address public underlying;
     int32 public decimals = 2;
-
-    event TokenCreated(address indexed tokenAddress);
-    event TokensMinted(address indexed to, int64 amount);
 
     constructor() Ownable(msg.sender) {}
 
@@ -91,7 +89,7 @@ contract Fiat is
     }
 
     /// @notice Mint tokens
-    function mint(address to, int64 amount) external {
+    function mint(address to, int64 amount) external onlyOwner {
         // Mint to treasury first
         (int256 responseCode, , ) = mintToken(
             underlying,
@@ -114,5 +112,15 @@ contract Fiat is
         }
 
         emit TokensMinted(to, amount);
+    }
+
+    /// @notice Burn tokens
+    function burn(address from, int64 amount) external onlyOwner {
+        (int256 responseCode, ) = burnToken(underlying, amount, new int64[](0));
+        if (responseCode != HederaResponseCodes.SUCCESS) {
+            revert TokenBurnFailed(responseCode);
+        }
+
+        emit TokensBurned(from, amount);
     }
 }

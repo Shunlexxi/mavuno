@@ -1,7 +1,7 @@
 import { farmerRegistryAbi } from "@/abis/farmerRegistry";
 import { lendingPoolAbi } from "@/abis/lendingPool";
 import { pledgeManagerAbi } from "@/abis/pledgeManager";
-import { Pool } from "@/types";
+import { CountryType, Pool } from "@/types";
 import { ApiResponse } from "@/types/api";
 import { Contracts, publicClient } from "@/utils/constants";
 import { Hex, zeroAddress } from "viem";
@@ -15,6 +15,7 @@ export class PoolsService {
     let fiat: Hex;
     let fiatUnderlying: Hex;
     let fiatUnderlyingId: string;
+    let country: CountryType;
 
     switch (address) {
       case Contracts.CediPool:
@@ -22,18 +23,21 @@ export class PoolsService {
         fiat = Contracts.CediFiat;
         fiatUnderlying = Contracts.CediFiatUnderlying;
         fiatUnderlyingId = Contracts.CediFiatUnderlyingId;
+        country = "ghana";
         break;
       case Contracts.RandPool:
         currency = "ZAR";
         fiat = Contracts.RandFiat;
         fiatUnderlying = Contracts.RandFiatUnderlying;
         fiatUnderlyingId = Contracts.RandFiatUnderlyingId;
+        country = "south africa";
         break;
       default:
         currency = "NGN";
         fiat = Contracts.NairaFiat;
         fiatUnderlying = Contracts.NairaFiatUnderlying;
         fiatUnderlyingId = Contracts.NairaFiatUnderlyingId;
+        country = "nigeria";
     }
 
     try {
@@ -65,7 +69,7 @@ export class PoolsService {
 
       const supplyAPY = BigInt((Number(borrowAPY) * utilizationRate) / 100);
 
-      const [lp, [principal], outstanding, healthFactor, pledgeManager] =
+      const [lp, [principal], outstanding, ltvBps, pledgeManager] =
         account == zeroAddress
           ? [0n, [0n, 0n], 0n, 0n, zeroAddress]
           : await Promise.all([
@@ -93,7 +97,7 @@ export class PoolsService {
               publicClient.readContract({
                 abi: lendingPoolAbi,
                 address,
-                functionName: "healthFactorLTV",
+                functionName: "ltvBps",
                 args: [account],
                 authorizationList: undefined,
               }) as Promise<bigint>,
@@ -141,6 +145,7 @@ export class PoolsService {
         fiatUnderlying,
         fiatUnderlyingId,
         currency,
+        country,
         totalLiquidity,
         totalBorrowed,
         supplyAPY,
@@ -150,7 +155,7 @@ export class PoolsService {
         withdrawable,
         borrow: principal,
         outstanding,
-        healthFactor,
+        ltvBps,
         totalPledge,
         active,
       };
@@ -160,6 +165,7 @@ export class PoolsService {
       return {
         address,
         currency,
+        country,
         fiat,
         fiatUnderlying,
         fiatUnderlyingId,
@@ -172,7 +178,7 @@ export class PoolsService {
         withdrawable: 0n,
         borrow: 0n,
         outstanding: 0n,
-        healthFactor: 0n,
+        ltvBps: 0n,
         totalPledge: 0n,
         active: false,
       };

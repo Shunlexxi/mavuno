@@ -624,7 +624,7 @@ export const lendingPoolAbi = [
         type: "address",
       },
     ],
-    name: "healthFactorLTV",
+    name: "ltvBps",
     outputs: [
       {
         internalType: "uint256",

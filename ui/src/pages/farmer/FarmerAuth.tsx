@@ -24,7 +24,7 @@ import { useWriteContract } from "@/utils/hedera";
 import { farmerRegistryAbi } from "@/abis/farmerRegistry";
 import { Contracts, publicClient } from "@/utils/constants";
 import { Hex, zeroAddress } from "viem";
-import { useFarmer, useFarmers } from "@/hooks/useFarmers";
+import { useFarmers } from "@/hooks/useFarmers";
 import { useAccount } from "wagmi";
 import { toast } from "sonner";
 import farmersService from "@/services/farmersService";

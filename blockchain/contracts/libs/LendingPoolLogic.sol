@@ -172,12 +172,19 @@ library LendingPoolLogic {
         BorrowerPosition storage position,
         int64 amount,
         int64 borrowRateBp,
-        int64 MAX_BPS,
-        int64 totalBorrowed
-    ) internal returns (int64 remainingPrincipal, int64 interestPaid) {
+        int64 MAX_BPS
+    )
+        internal
+        returns (
+            int64 remainingPrincipal,
+            int64 interestPaid,
+            int64 principalRepaid
+        )
+    {
         if (amount <= 0) revert ZeroAmount();
         if (position.principal <= 0) revert NoOutstandingLoan();
 
+        // compute interest owed (non-negative)
         int64 interest = InterestLib.accruedInterest(
             position.principal,
             position.borrowedAt,
@@ -190,41 +197,37 @@ library LendingPoolLogic {
         uint256 principalUint = uint256(uint64(position.principal));
 
         if (pay <= interestUint) {
-            uint256 outstandingBefore = principalUint + interestUint;
-            uint256 outstandingAfter = outstandingBefore - pay;
-            if (outstandingAfter > type(uint64).max) revert OverflowAfterPay();
-
-            remainingPrincipal = int64(uint64(outstandingAfter));
-            position.principal = remainingPrincipal;
+            // payment covers partial or all interest only
+            // principal remains unchanged (but borrowedAt updated)
+            interestPaid = int64(uint64(pay));
+            remainingPrincipal = position.principal; // principal unchanged
+            principalRepaid = 0;
             position.borrowedAt = block.timestamp;
-
-            interestPaid = amount;
         } else {
+            // pay covers interest and some principal
+            interestPaid = int64(uint64(interestUint));
             uint256 payLeft = pay - interestUint;
 
             if (payLeft >= principalUint) {
-                totalBorrowed -= position.principal;
+                // full principal repaid
+                principalRepaid = int64(uint64(principalUint));
+                remainingPrincipal = 0;
                 position.principal = 0;
                 position.borrowedAt = 0;
-                remainingPrincipal = 0;
             } else {
+                // partial principal repaid
                 uint256 newPrincipalU = principalUint - payLeft;
                 if (newPrincipalU > type(uint64).max)
                     revert OverflowNewPrincipal();
-
                 remainingPrincipal = int64(uint64(newPrincipalU));
                 position.principal = remainingPrincipal;
                 position.borrowedAt = block.timestamp;
-
-                int64 principalRepaid = int64(uint64(payLeft));
-                totalBorrowed -= principalRepaid;
+                principalRepaid = int64(uint64(payLeft));
             }
-
-            interestPaid = interest;
         }
     }
 
-    function calculateHealthFactor(
+    function calculateLtvBps(
         address farmer,
         BorrowerPosition storage position,
         FarmerRegistryInterface registry,
@@ -274,7 +277,7 @@ library LendingPoolLogic {
         int64 borrowRateBp,
         int64 MAX_BPS
     ) internal view returns (int64 debt) {
-        uint256 ltvBps = calculateHealthFactor(
+        uint256 ltvBps = calculateLtvBps(
             farmer,
             position,
             registry,
@@ -283,15 +286,18 @@ library LendingPoolLogic {
             borrowRateBp,
             MAX_BPS
         );
+
+        // Only liquidate if LTV exceeds (>=) liquidation threshold
         if (ltvBps < uint256(uint64(LIQUIDATION_BPS)))
             revert LTVBelowThreshold();
 
+        // compute debt (principal + accrued interest at borrowRateBp)
         debt = position.principal > 0
             ? position.principal +
                 InterestLib.accruedInterest(
                     position.principal,
                     position.borrowedAt,
-                    0,
+                    borrowRateBp,
                     MAX_BPS
                 )
             : int64(0);
