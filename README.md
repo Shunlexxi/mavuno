@@ -93,22 +93,6 @@ Handles all liquidity, loans, and repayments for a specific fiat-backed pool. Fa
 
 ---
 
-## Protocol Flow
-
-```mermaid
-flowchart TD
-    A[Pledger deposits HBAR into Farmer PledgeManager] --> B[Farmer activates pledges]
-    B --> C[Farmer borrows from LendingPool in tokenized fiat]
-    C --> D[Funds off-ramped to farmer's bank/ATM]
-    D --> E[Farmer uses funds for agriculture]
-    E --> F[Farmer repays loan + interest]
-    F --> G[LendingPool grows balance]
-    G --> H[LPs earn yield + protocol fee taken]
-    H --> I[If unhealthy → liquidation triggers in PledgeManager]
-```
-
----
-
 ## Key Features Recap
 
 * Community-backed pledging instead of collateral.
