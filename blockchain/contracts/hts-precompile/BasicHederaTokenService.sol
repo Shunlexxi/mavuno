@@ -3,7 +3,7 @@ pragma solidity >=0.5.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
 import "./HederaResponseCodes.sol";
-import "./IHederaTokenService.sol";
+import "./IBasicHederaTokenService.sol";
 
 abstract contract BasicHederaTokenService {
     address constant precompileAddress = address(0x167);
@@ -14,7 +14,7 @@ abstract contract BasicHederaTokenService {
     ) internal returns (int responseCode) {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(
-                IHederaTokenService.associateToken.selector,
+                IBasicHederaTokenService.associateToken.selector,
                 account,
                 token
             )
@@ -43,7 +43,7 @@ abstract contract BasicHederaTokenService {
     ) internal returns (int responseCode) {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(
-                IHederaTokenService.transferToken.selector,
+                IBasicHederaTokenService.transferToken.selector,
                 token,
                 sender,
                 receiver,

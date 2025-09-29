@@ -82,33 +82,74 @@ async function main() {
 
   console.log("FarmerRegistry deployed at:", await farmerRegistry.getAddress());
 
-  // --- Deploy MavunoFactory ---
-  const MavunoFactory = await ethers.getContractFactory("MavunoFactory");
-  const mavunoFactory = await MavunoFactory.deploy(
+  // // --- Deploy MavunoFactory ---
+  // const MavunoFactory = await ethers.getContractFactory("MavunoFactory");
+  // const mavunoFactory = await MavunoFactory.deploy(
+  //   deployer.address,
+  //   await oracle.getAddress(),
+  //   await farmerRegistry.getAddress()
+  // );
+  // await mavunoFactory.waitForDeployment();
+
+  // console.log("MavunoFactory deployed at:", await mavunoFactory.getAddress());
+
+  // // --- Create pools ---
+  // await mavunoFactory.createPool(await ngn.getAddress());
+  // await mavunoFactory.createPool(await ghs.getAddress());
+  // await mavunoFactory.createPool(await zar.getAddress());
+
+  // console.log(
+  //   "NGN pool:",
+  //   await mavunoFactory.fiatToPool(await ngn.getAddress())
+  // );
+  // console.log(
+  //   "GHS pool:",
+  //   await mavunoFactory.fiatToPool(await ghs.getAddress())
+  // );
+  // console.log(
+  //   "ZAR pool:",
+  //   await mavunoFactory.fiatToPool(await zar.getAddress())
+  // );
+
+  // --- Deploy LendingPools ---
+  const LendingPool = await ethers.getContractFactory("LendingPool");
+  const ngnLendingPool = await LendingPool.deploy(
     deployer.address,
     await oracle.getAddress(),
+    await ngn.getAddress(),
     await farmerRegistry.getAddress()
   );
-  await mavunoFactory.waitForDeployment();
-
-  console.log("MavunoFactory deployed at:", await mavunoFactory.getAddress());
-
-  // --- Create pools ---
-  await mavunoFactory.createPool(await ngn.getAddress());
-  await mavunoFactory.createPool(await ghs.getAddress());
-  await mavunoFactory.createPool(await zar.getAddress());
+  await ngnLendingPool.waitForDeployment();
 
   console.log(
-    "NGN pool:",
-    await mavunoFactory.fiatToPool(await ngn.getAddress())
+    "NGN LendingPool deployed at:",
+    await ngnLendingPool.getAddress()
   );
-  console.log(
-    "GHS pool:",
-    await mavunoFactory.fiatToPool(await ghs.getAddress())
+
+  const ghsLendingPool = await LendingPool.deploy(
+    deployer.address,
+    await oracle.getAddress(),
+    await ghs.getAddress(),
+    await farmerRegistry.getAddress()
   );
+  await ghsLendingPool.waitForDeployment();
+
   console.log(
-    "ZAR pool:",
-    await mavunoFactory.fiatToPool(await zar.getAddress())
+    "GHS LendingPool deployed at:",
+    await ghsLendingPool.getAddress()
+  );
+
+  const zarLendingPool = await LendingPool.deploy(
+    deployer.address,
+    await oracle.getAddress(),
+    await zar.getAddress(),
+    await farmerRegistry.getAddress()
+  );
+  await zarLendingPool.waitForDeployment();
+
+  console.log(
+    "ZAR LendingPool deployed at:",
+    await zarLendingPool.getAddress()
   );
 }
 
@@ -117,16 +158,14 @@ main().catch((err) => {
   process.exit(1);
 });
 
-// Deploying contracts with: 0x2531dCd3dC58559c19EEE09736443D026D40d5f5
-// NGN: 0x908E7B74887f47799c7d75c5a7FC5b25344Ef287
-// NGN underlying: 0x0000000000000000000000000000000000696A59
-// GHS: 0x8e618CEeb54fB10b52Ab2CCD8839FC4A9b28CA75
-// GHS underlying: 0x0000000000000000000000000000000000696A5B
-// ZAR: 0xfd3DC4dC7dc401874215896180c1838C9476d2f1
-// ZAR underlying: 0x0000000000000000000000000000000000696a63
-// Oracle deployed at: 0xd964B9ecf0779595Db15912A05c546C418DD0f72
-// FarmerRegistry deployed at: 0x666942D4582D40375965150a774068a529312926
-// MavunoFactory deployed at: 0xA84a52665aAd57db7544c61df496fa31F8de1d37
-// NGN pool: 0xd09FEd685D3C1d390a3Ba6348d664619D65330c7
-// GHS pool: 0xC40DbD39555823F30c28C72fF44b42dAEA35f048
-// ZAR pool: 0xA2e03e5299c12f7231E820d291b530B7003Db803
+// NGN: 0xfb17e5e510a72885b8b7Ba30ce33B8CcDABa5dbE
+// NGN underlying: 0x0000000000000000000000000000000000699F08
+// GHS: 0x2De3704dd711dD0dd2FE884c839CC4D4E7Dedc58
+// GHS underlying: 0x0000000000000000000000000000000000699f0C
+// ZAR: 0xF36184FeC60231A1224dE879374bF5069a1fcB0B
+// ZAR underlying: 0x0000000000000000000000000000000000699f12
+// Oracle deployed at: 0x2833729128769a516377989F60a2585F829Df840
+// FarmerRegistry deployed at: 0xC84BA071EE3372DfBc9023d2d292dc363937293C
+// NGN LendingPool deployed at: 0x12B1639724058F953fA1f5b108402C83aA58d0fD
+// GHS LendingPool deployed at: 0x8D6883aAB2DC30dC515017401C66db0Db3fD93EF
+// ZAR LendingPool deployed at: 0xCF934d7D3cEda918ee5a581B96AeF09028065469

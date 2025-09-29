@@ -34,15 +34,6 @@ library LendingPoolLogic {
         uint256 borrowedAt;
     }
 
-    struct PoolState {
-        int64 totalSupplied;
-        int64 totalBorrowed;
-        int64 loanToValueBp;
-        int64 borrowRateBp;
-        int64 MAX_BPS;
-        int64 LIQUIDATION_BPS;
-    }
-
     function calculateLPTokens(
         int64 amount,
         uint256 lpTotalSupply,

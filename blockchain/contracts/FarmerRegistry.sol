@@ -8,14 +8,6 @@ import {PledgeManager} from "./PledgeManager.sol";
 /// @title FarmerRegistry
 /// @notice Registers farmer wallets to off-chain profile pointers (IPFS) and auto-deploys a PledgeManager per farmer.
 contract FarmerRegistry is FarmerRegistryInterface, Ownable {
-    event FarmerRegistered(
-        address indexed farmer,
-        address pool,
-        string profileUri,
-        address manager
-    );
-    event FarmerUpdated(address indexed farmer, string profileUri);
-
     address[] public allManagers;
     mapping(address => string) public profileUri; // farmer wallet => profile URI IPFS
     mapping(address => address) public farmerToManager; // farmer => pledge manager

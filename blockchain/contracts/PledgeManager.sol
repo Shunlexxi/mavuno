@@ -14,14 +14,6 @@ contract PledgeManager is
     Ownable,
     ERC20
 {
-    error ZeroAddress();
-    error ZeroAmount();
-    error ActivePledge();
-    error TransferFailed();
-    error NoCollateral();
-    error NotFarmer();
-    error InsufficientBalance();
-
     address public immutable farmer;
     address public immutable pool;
     bool public active = true;

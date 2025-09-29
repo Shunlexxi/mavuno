@@ -6,14 +6,11 @@ import {LendingPool} from "./LendingPool.sol";
 import {OracleInterface} from "./interfaces/OracleInterface.sol";
 import {FiatInterface} from "./interfaces/FiatInterface.sol";
 import {FarmerRegistryInterface} from "./interfaces/FarmerRegistryInterface.sol";
+import {MavunoFactoryInterface} from "./interfaces/MavunoFactoryInterface.sol";
 
 /// @title MavunoFactory
 /// @notice Deploys and manages LendingPool contracts for different HTS fiat tokens (NGN, GHS, ZAR, etc.)
-contract MavunoFactory is Ownable {
-    error InvalidAddress();
-    error PoolAlreadyExists();
-    error InvalidFiatToken();
-
+contract MavunoFactory is Ownable, MavunoFactoryInterface {
     /// @notice Controller (shared across all pools)
     address public controller;
 
@@ -28,11 +25,6 @@ contract MavunoFactory is Ownable {
 
     /// @notice List of deployed pool addresses for iteration
     address[] public allPools;
-
-    event PoolCreated(address indexed fiat, address pool, uint256 poolIndex);
-    event OracleUpdated(address indexed newOracle);
-    event ControllerUpdated(address indexed newController);
-    event RegistryUpdated(address indexed newRegistry);
 
     constructor(
         address _controller,
@@ -72,29 +64,22 @@ contract MavunoFactory is Ownable {
         emit PoolCreated(fiat, pool, allPools.length - 1);
     }
 
-    /// @notice Get pool address for a specific fiat token
-    function getPool(address fiat) external view returns (address) {
-        return fiatToPool[fiat];
-    }
+    /// @notice Update controller, oracle, and registry for future pools
+    function setConfiguration(
+        address _controller,
+        address _oracle,
+        address _registry
+    ) external onlyOwner {
+        if (
+            _controller == address(0) ||
+            _oracle == address(0) ||
+            _registry == address(0)
+        ) {
+            revert InvalidAddress();
+        }
 
-    /// @notice Update oracle for future pools
-    function setOracle(address _oracle) external onlyOwner {
-        if (_oracle == address(0)) revert InvalidAddress();
-        oracle = _oracle;
-        emit OracleUpdated(_oracle);
-    }
-
-    /// @notice Update controller for future pools
-    function setController(address _controller) external onlyOwner {
-        if (_controller == address(0)) revert InvalidAddress();
         controller = _controller;
-        emit ControllerUpdated(_controller);
-    }
-
-    /// @notice Update registry for future pools
-    function setRegistry(address _registry) external onlyOwner {
-        if (_registry == address(0)) revert InvalidAddress();
+        oracle = _oracle;
         registry = _registry;
-        emit RegistryUpdated(_registry);
     }
 }

@@ -18,12 +18,6 @@ contract Fiat is
     FiatInterface,
     Ownable
 {
-    error TokenAlreadyCreated();
-    error TokenCreationFailed(int256 responseCode);
-    error TokenMintFailed(int256 responseCode);
-    error TokenBurnFailed(int256 responseCode);
-    error TokenTransferFailed(int256 responseCode);
-
     address public underlying;
     int32 public decimals = 2;
 

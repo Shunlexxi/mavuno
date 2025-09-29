@@ -21,7 +21,6 @@ contract LendingPool is
     ERC20,
     LendingPoolInterface
 {
-    using LendingPoolLogic for LendingPoolLogic.PoolState;
     using LendingPoolLogic for LendingPoolLogic.BorrowerPosition;
 
     OracleInterface public oracle;

@@ -6,6 +6,14 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 /// @title PledgeManagerInterface
 /// @notice Interface for LP-token based pledge managers
 interface PledgeManagerInterface is IERC20 {
+    error ZeroAddress();
+    error ZeroAmount();
+    error ActivePledge();
+    error TransferFailed();
+    error NoCollateral();
+    error NotFarmer();
+    error InsufficientBalance();
+
     event Pledged(address indexed pledger, uint256 amount);
     event Withdrawn(address indexed withdrawer, uint256 amount);
     event Liquidated(
