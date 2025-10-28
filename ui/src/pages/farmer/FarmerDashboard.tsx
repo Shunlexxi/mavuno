@@ -9,6 +9,7 @@ import {
   Plus,
   MessageSquare,
   Loader,
+  BotIcon,
 } from "lucide-react";
 import { useFarmer } from "@/hooks/useFarmers";
 import { useAccount } from "wagmi";
@@ -22,6 +23,9 @@ import { lendingPoolAbi } from "@/abis/lendingPool";
 import { useState } from "react";
 import PoolActionDialog from "@/components/dialogs/PoolActionDialog";
 import { formatDistanceToNow } from "date-fns";
+import { generateFarmingReply } from "@/services/aiService";
+import { Input } from "@/components/ui/input";
+import ReactMarkdown from "react-markdown";
 
 export default function FarmerDashboard() {
   const { address } = useAccount();
@@ -37,6 +41,19 @@ export default function FarmerDashboard() {
   const [activating, setActivating] = useState(false);
 
   const { writeContract } = useWriteContract();
+
+  const [prompt, setPrompt] = useState("");
+  const [response, setResponse] = useState<string | null>(null);
+  const [isReplying, setIsReplying] = useState(false);
+
+  const handleAsk = async () => {
+    if (!prompt.trim()) return;
+    setIsReplying(true);
+    setResponse(null);
+    const reply = await generateFarmingReply(prompt);
+    setResponse(reply);
+    setIsReplying(false);
+  };
 
   const stats = [
     {
@@ -278,6 +295,41 @@ export default function FarmerDashboard() {
                 )}
               </div>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* AI Chat */}
+      <div className="grid lg:grid-cols-1 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <div className="flex items-center gap-2">
+                <BotIcon />
+                <p>FarmGPT</p>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Ask about farming..."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAsk()}
+              />
+              <Button onClick={handleAsk} disabled={isReplying}>
+                {isReplying ? "Thinking..." : "Ask"}
+              </Button>
+            </div>
+
+            {response && (
+              <div className="p-3 rounded-lg bg-muted border">
+                <div className="p-4 rounded-lg bg-muted border prose prose-sm max-w-none">
+                  <ReactMarkdown>{response}</ReactMarkdown>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

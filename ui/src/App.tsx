@@ -20,6 +20,7 @@ import { WagmiProvider } from "wagmi";
 import { createAppKit } from "@reown/appkit/react";
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+import FarmerPage from "./pages/pledger/FarmerPage";
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,7 @@ const App = () => (
               <Route path="dashboard" element={<PledgerDashboard />} />
               <Route path="farmers" element={<FarmersDirectory />} />
               <Route path="pledge/:farmerAddress" element={<PledgePage />} />
+              <Route path="farmers/:farmerAddress" element={<FarmerPage />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

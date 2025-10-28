@@ -6,7 +6,7 @@ import {
   setDoc,
   getDocs,
   collection,
-  query,
+  query,or,
   getFirestore,
   where,
   getDoc,
@@ -22,14 +22,15 @@ export class PledgesService {
       const dbRef = collection(db, "pledges");
       let q = query(dbRef);
 
-      if (filters?.pledgerAddress) {
-        q = query(q, where("pledgerAddress", "==", filters?.pledgerAddress));
+      if (filters?.pledgerAddress || filters?.farmerAddress) {
+        q = query(
+          q,
+          or(
+            where("pledgerAddress", "==", filters?.pledgerAddress ?? ""),
+            where("farmerAddress", "==", filters?.farmerAddress ?? "")
+          )
+        );
       }
-
-      if (filters?.farmerAddress) {
-        q = query(q, where("farmerAddress", "==", filters?.farmerAddress));
-      }
-
       const querySnapshot = await getDocs(q);
 
       const pledges: Pledge[] = [];
