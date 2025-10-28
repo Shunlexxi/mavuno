@@ -28,6 +28,7 @@ import { useFarmers } from "@/hooks/useFarmers";
 import { useAccount } from "wagmi";
 import { toast } from "sonner";
 import farmersService from "@/services/farmersService";
+import { useIPFS } from "@/hooks/useIPFS";
 
 interface FarmerAuthProps {
   mode: "login" | "register";
@@ -48,6 +49,7 @@ export default function FarmerAuth({ mode }: FarmerAuthProps) {
   const { writeContract } = useWriteContract();
   const { createFarmer } = useFarmers();
   const { address } = useAccount();
+  const { upload } = useIPFS();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,20 +62,22 @@ export default function FarmerAuth({ mode }: FarmerAuthProps) {
       try {
         setIsLoading(true);
 
+        // Upload metadata via Pinata to IPFS
+        const metadataJson = JSON.stringify({
+          name,
+          email,
+          location,
+          farmSize,
+          cropType,
+          description,
+        });
+        const metadataBase64 = btoa(unescape(encodeURIComponent(metadataJson)));
+        const { url: metadataUrl } = await upload(metadataBase64);
+
         const createHash = await writeContract({
           abi: farmerRegistryAbi,
           address: Contracts.FarmerRegistry,
-          args: [
-            JSON.stringify({
-              name,
-              email,
-              location,
-              farmSize,
-              cropType,
-              description,
-            }),
-            pool,
-          ],
+          args: [metadataUrl, pool],
           functionName: "registerFarmer",
         });
 
@@ -94,6 +98,7 @@ export default function FarmerAuth({ mode }: FarmerAuthProps) {
           farmSize,
           cropType,
           description,
+          metadataUrl,
           preferredPool: pool,
         });
 

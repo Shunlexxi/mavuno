@@ -17,6 +17,7 @@ export interface User {
 export interface Farmer extends User {
   pledgeManager: Hex;
   preferredPool: Hex;
+  metadataUrl?: string;
 }
 
 export interface TimelinePost {

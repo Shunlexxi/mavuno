@@ -25,6 +25,7 @@ export interface CreateFarmerRequest {
   cropType: string;
   description: string;
   preferredPool: Hex;
+  metadataUrl: string;
 }
 
 export interface PledgeRequest {
