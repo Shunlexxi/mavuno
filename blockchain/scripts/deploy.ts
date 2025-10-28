@@ -151,6 +151,17 @@ async function main() {
     "ZAR LendingPool deployed at:",
     await zarLendingPool.getAddress()
   );
+
+  const Mav = await ethers.getContractFactory("Mav");
+  const mav = await Mav.deploy();
+  await mav.waitForDeployment();
+
+  await mav.create(7_776_000, {
+    value: ethers.parseEther("10"),
+    gasLimit: 1_000_000,
+  })
+
+  console.log("Mav deployed at:", await mav.getAddress());
 }
 
 main().catch((err) => {
@@ -158,14 +169,16 @@ main().catch((err) => {
   process.exit(1);
 });
 
-// NGN: 0xfb17e5e510a72885b8b7Ba30ce33B8CcDABa5dbE
-// NGN underlying: 0x0000000000000000000000000000000000699F08
-// GHS: 0x2De3704dd711dD0dd2FE884c839CC4D4E7Dedc58
-// GHS underlying: 0x0000000000000000000000000000000000699f0C
-// ZAR: 0xF36184FeC60231A1224dE879374bF5069a1fcB0B
-// ZAR underlying: 0x0000000000000000000000000000000000699f12
-// Oracle deployed at: 0x2833729128769a516377989F60a2585F829Df840
-// FarmerRegistry deployed at: 0xC84BA071EE3372DfBc9023d2d292dc363937293C
-// NGN LendingPool deployed at: 0x12B1639724058F953fA1f5b108402C83aA58d0fD
-// GHS LendingPool deployed at: 0x8D6883aAB2DC30dC515017401C66db0Db3fD93EF
-// ZAR LendingPool deployed at: 0xCF934d7D3cEda918ee5a581B96AeF09028065469
+// Deploying contracts with: 0xb5d7E1b762cD7993334C2E08449DCE6460B51154
+// NGN: 0x8101f81080d4e4E155a0A5693Fe290A4dFEc3C9e
+// NGN underlying: 0x00000000000000000000000000000000006d24EC
+// GHS: 0x4Df6d091d659106dBCE06aF95Fe1bd2f36056bA1
+// GHS underlying: 0x00000000000000000000000000000000006D24f1
+// ZAR: 0xBB3b10e2758a1a364451E5b69Abdf530Bd087185
+// ZAR underlying: 0x00000000000000000000000000000000006D24f3
+// Oracle deployed at: 0x0B660825c8E6dDA8afcFBb3E9507379a29DE51bA
+// FarmerRegistry deployed at: 0x956AAEAdaA63A97C94E0f57159a406f7dcF2Cd52
+// NGN LendingPool deployed at: 0x3C259f20Ded65DCb7000B320CB491FDD9395bD77
+// GHS LendingPool deployed at: 0x4dF14321909f8d482CCafF9ad82D4B686fBB4447
+// ZAR LendingPool deployed at: 0xA279A377D2d097E31a7A99945E87463fCD8A8420
+// Mav deployed at: 0x99718EF4Eb7027E40994949c6e2fc1827B43A7A9

@@ -14,20 +14,21 @@ export const publicClient = createPublicClient({
 });
 
 export const Contracts = {
-  NairaFiat: "0xfb17e5e510a72885b8b7Ba30ce33B8CcDABa5dbE" as Hex,
-  NairaFiatUnderlying: "0x0000000000000000000000000000000000699F08" as Hex,
-  CediFiat: "0x2De3704dd711dD0dd2FE884c839CC4D4E7Dedc58" as Hex,
-  CediFiatUnderlying: "0x0000000000000000000000000000000000699f0C" as Hex,
-  RandFiat: "0xF36184FeC60231A1224dE879374bF5069a1fcB0B" as Hex,
-  RandFiatUnderlying: "0x0000000000000000000000000000000000699f12" as Hex,
-  Orcale: "0x2833729128769a516377989F60a2585F829Df840" as Hex,
-  FarmerRegistry: "0xC84BA071EE3372DfBc9023d2d292dc363937293C" as Hex,
-  NairaPool: "0x12B1639724058F953fA1f5b108402C83aA58d0fD" as Hex,
-  CediPool: "0x8D6883aAB2DC30dC515017401C66db0Db3fD93EF" as Hex,
-  RandPool: "0xCF934d7D3cEda918ee5a581B96AeF09028065469" as Hex,
-  NairaFiatUnderlyingId: "0.0.6921992",
-  CediFiatUnderlyingId: "0.0.6921996",
-  RandFiatUnderlyingId: "0.0.6922002",
+  NairaFiat: "0x8101f81080d4e4E155a0A5693Fe290A4dFEc3C9e" as Hex,
+  NairaFiatUnderlying: "0x00000000000000000000000000000000006d24EC" as Hex,
+  CediFiat: "0x4Df6d091d659106dBCE06aF95Fe1bd2f36056bA1" as Hex,
+  CediFiatUnderlying: "0x00000000000000000000000000000000006D24f1" as Hex,
+  RandFiat: "0xBB3b10e2758a1a364451E5b69Abdf530Bd087185" as Hex,
+  RandFiatUnderlying: "0x00000000000000000000000000000000006D24f3" as Hex,
+  Orcale: "0x0B660825c8E6dDA8afcFBb3E9507379a29DE51bA" as Hex,
+  FarmerRegistry: "0x956AAEAdaA63A97C94E0f57159a406f7dcF2Cd52" as Hex,
+  NairaPool: "0x3C259f20Ded65DCb7000B320CB491FDD9395bD77" as Hex,
+  CediPool: "0x4dF14321909f8d482CCafF9ad82D4B686fBB4447" as Hex,
+  RandPool: "0xA279A377D2d097E31a7A99945E87463fCD8A8420" as Hex,
+  MavToken: "0x99718EF4Eb7027E40994949c6e2fc1827B43A7A9" as Hex,
+  NairaFiatUnderlyingId: "0.0.7152876",
+  CediFiatUnderlyingId: "0.0.7152881",
+  RandFiatUnderlyingId: "0.0.7152883",
 };
 
 export const Symbols: Record<Hex, string> = {};

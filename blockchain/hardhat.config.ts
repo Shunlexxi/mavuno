@@ -1,7 +1,9 @@
 import type { HardhatUserConfig } from "hardhat/config";
 
 import hardhatToolboxMochaEthersPlugin from "@nomicfoundation/hardhat-toolbox-mocha-ethers";
-import { configVariable } from "hardhat/config";
+
+import dotenv from "dotenv";
+dotenv.config();
 
 const config: HardhatUserConfig = {
   plugins: [hardhatToolboxMochaEthersPlugin],
@@ -32,8 +34,8 @@ const config: HardhatUserConfig = {
   networks: {
     testnet: {
       type: "http",
-      url: configVariable("HEDERA_RPC_URL"),
-      accounts: [configVariable("HEDERA_PRIVATE_KEY")],
+      url: "https://testnet.hashio.io/api",
+      accounts: [process.env.HEDERA_PRIVATE_KEY!],
     },
   },
 };
