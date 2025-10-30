@@ -19,6 +19,7 @@ import { useTimeline } from "@/hooks/useTimeline";
 import { useFarmer } from "@/hooks/useFarmers";
 import { useAccount } from "wagmi";
 import { toast } from "sonner";
+import { useIPFS } from "@/hooks/useIPFS";
 
 export default function FarmerTimeline() {
   const [newPost, setNewPost] = useState("");
@@ -28,11 +29,28 @@ export default function FarmerTimeline() {
     address,
     type: "update",
   });
+  const { uploadFile } = useIPFS();
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onImageSelect = (e: any) => {
+    const files: File[] = e.target.files;
+    if (files.length == 0) {
+      return setImageFile(null);
+    }
+    setImageFile(files[0]);
+  };
 
   const handlePost = async () => {
     try {
+      const images: string[] = [];
+      if (imageFile) {
+        const { cid } = await uploadFile(imageFile);
+        images.push(`https://copper-keen-moth-7.mypinata.cloud/ipfs/${cid}`);
+      }
+
       await createPost(address, {
         content: newPost,
+        images,
         type: "update",
       });
 
@@ -89,10 +107,7 @@ export default function FarmerTimeline() {
           />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Camera className="w-4 h-4" />
-                Add Photos
-              </Button>
+              <input type="file" accept="image/*" onChange={onImageSelect} />
             </div>
             <Button onClick={handlePost}>Share Update</Button>
           </div>

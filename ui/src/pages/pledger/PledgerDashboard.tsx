@@ -13,16 +13,46 @@ import {
 import PledgeActionDialog from "@/components/dialogs/PledgeActionDialog";
 import { usePledges } from "@/hooks/usePledges";
 import { useAccount, useBalance } from "wagmi";
-import { formatEther } from "viem";
+import { formatEther, parseUnits } from "viem";
 import { Link } from "react-router-dom";
 import { useTimeline } from "@/hooks/useTimeline";
 import { formatDistanceToNow } from "date-fns";
+import { adminClient, Contracts } from "@/utils/constants";
+import { mavAbi } from "@/abis/mav";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function PledgerDashboard() {
   const { address } = useAccount();
   const { data: balance } = useBalance({ address });
   const { pledges, loading, refetch } = usePledges({ pledgerAddress: address });
   const { posts } = useTimeline({ address, type: "activity" });
+
+  const [rewardAmount, setRewardAmount] = useState(0.23);
+  const [claiming, setClaiming] = useState(false);
+
+  const handleClaimRewards = async () => {
+    try {
+      setClaiming(true);
+
+      const tx = await adminClient.writeContract({
+        abi: mavAbi,
+        address: Contracts.MavToken,
+        functionName: "mint",
+        args: [address, parseUnits(rewardAmount.toString(), 8)],
+        chain: undefined,
+        account: adminClient.account,
+      });
+
+      toast.success(`Claimed: ${tx}`);
+
+      setRewardAmount(0);
+    } catch (error) {
+      toast.error("Failed");
+    } finally {
+      setClaiming(false);
+    }
+  };
 
   const dashboardStats = [
     {
@@ -72,7 +102,6 @@ export default function PledgerDashboard() {
           </Link>
         </div>
       </div>
-
       {/* Stats Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {dashboardStats.map((stat, index) => (
@@ -180,25 +209,37 @@ export default function PledgerDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle>MAV Rewards</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {posts.map((post) => {
-              return (
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
-                  <div className="flex-1">
-                    <p className="text-sm">{post.content}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(post.createdAt)}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+          <CardContent className="flex items-center justify-between">
+            <p>{rewardAmount} MAV</p>
+            <Button disabled={claiming} onClick={handleClaimRewards}>
+              {claiming ? "Claiming" : "Claim"}
+            </Button>
           </CardContent>
         </Card>
       </div>
+
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {posts.map((post) => {
+            return (
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                <div className="flex-1">
+                  <p className="text-sm">{post.content}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(post.createdAt)}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
     </div>
   );
 }

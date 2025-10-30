@@ -14,5 +14,13 @@ export function useIPFS() {
     };
   };
 
-  return { upload };
+  const uploadFile = async (file: File) => {
+    const result = await pinata.upload.public.file(file);
+    return {
+      ...result,
+      url: `ipfs://${result.cid}`,
+    };
+  };
+
+  return { upload, uploadFile };
 }

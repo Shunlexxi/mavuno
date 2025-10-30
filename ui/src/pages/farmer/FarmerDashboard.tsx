@@ -156,13 +156,27 @@ export default function FarmerDashboard() {
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="gap-2">
+            Complete KYC
+          </Button>
+          <Button variant="outline" className="gap-2">
             <MessageSquare className="w-4 h-4" />
             New Update
           </Button>
-          <Button className="gap-2">
-            <Plus className="w-4 h-4" />
-            Request Loan
-          </Button>
+          {pool && (
+            <PoolActionDialog
+              pool={pool}
+              action="borrow"
+              onClose={() => {
+                refetch();
+                refetchFarmer();
+              }}
+            >
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" />
+                Request Loan
+              </Button>
+            </PoolActionDialog>
+          )}
         </div>
       </div>
 
@@ -300,7 +314,7 @@ export default function FarmerDashboard() {
       </div>
 
       {/* AI Chat */}
-      <div className="grid lg:grid-cols-1 gap-6">
+      <div className="grid lg:grid-cols-1 gap-6 mt-8">
         <Card>
           <CardHeader>
             <CardTitle>
