@@ -83,7 +83,7 @@ export const generateFarmerSummary = async (
           parts: [
             {
               text: `
-                You are an AI summarizer for VeFarmers. Summarize farmer profiles or activity logs into short, clear updates.
+                You are an AI summarizer for Mavuno. Summarize farmer profiles or activity logs into short, clear updates.
                 Keep summaries positive, factual, and useful for pledgers reviewing farmer progress.
               `,
             },
