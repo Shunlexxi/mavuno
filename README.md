@@ -2,11 +2,72 @@
 
 **Empowering farmers through community-backed micro-lending on Hedera Hashgraph**
 
-Mavuno is a decentralized micro-lending protocol designed to provide farmers in Africa with access to credit. Instead of requiring collateral, farmers are backed by pledgers who stake HBAR. Farmers borrow undercollateralized loans in tokenized local fiat from lending pools and access real cash directly through banks and ATM cards.
+Mavuno is a digital lending platform built for farmers in Africa. Unlike traditional banks or crypto platforms that demand heavy collateral, Mavuno uses a simple community pledge system. Farmers don't have to lock up land, titles, assets, or large savings. Instead, friends, family, or supporters can pledge funds on their behalf in HBAR. This makes it possible for farmers to access small loans in their local currency that can go straight to their bank accounts or ATM cards without necessarily dealing with the complexity of cryptocurrency or web3 wallets.
 
-The system is transparent, secure, and designed to serve agriculture while enabling global pledgers to support local farmers.
+The goal is to make credit fair, transparent, accessible, and designed for real-world agricultural needs while enabling global pledgers to support local farmers.
 
 ---
+
+## Setup Steps
+* **UI (React App) - Local Development**
+Follow the steps below to run the project locally:
+1. Clone the repository
+   ```bash
+   git clone https://github.com/Shunlexxi/mavuno.git
+2. Navigate into the project directory
+   ```bash
+   cd ui
+3. Install dependencies
+   ```bash
+   npm install
+4. Create a .env file
+   ```bash
+   code .env
+5. Set environment variables
+   ```bash
+   VITE_ADMIN_PK=<enter value>
+   VITE_FB_API_KEY=<enter value>
+   VITE_FB_APP_ID=<enter value>
+   VITE_FB_AUTH_DOMAIN=<enter value>
+   VITE_FB_MEASUREMENT_ID=<enter value>
+   VITE_FB_MESSAGING_SENDER_ID=<enter value>
+   VITE_FB_PROJECT_ID=<enter value>
+   VITE_FB_STORAGE_BUCKET=<enter value>
+   VITE_PAYSTACK_PK_KEY=<enter value>
+   VITE_REOWN_PROJECT_ID=<enter value>
+   VITE_PINATA_JWT=<enter value>
+   VITE_PINATA_GATEWAY=<enter value>
+6. Run the development server
+   ```bash
+   npm run dev
+7. Visit the app
+Open your browser and go to: http://localhost:5173 (or the port shown in your terminal)
+
+* **Deploy Smart Contracts**
+Follow the steps below to deploy the smart contracts to the testnet:
+1. Clone the repository (if you cloned previously, skip)
+   ```bash
+   git clone https://github.com/Shunlexxi/mavuno.git
+2. Navigate into the blockchain directory (assumption: you are not in the ui directory. If not, change directory)
+   ```bash
+   cd ../blockchain
+3. Install dependencies
+   ```bash
+   npm install
+4. Create a .env file
+   ```bash
+   code .env
+5. Set environment variables
+   ```bash
+   HEDERA_PRIVATE_KEY=<enter value>
+6. Deploy the contracts to the testnet
+   ```bash
+   npx hardhat run scripts/deploy.ts --network testnet
+7. View deployment logs (Example)
+   ```bash
+   Deploying contracts...
+   ...
+   Deployment successful!
 
 ## Contract Architecture
 
@@ -119,3 +180,10 @@ Handles all liquidity, loans, and repayments for a specific fiat-backed pool. Fa
 * **Backend/Indexing:** Firebase (temporary), The Graph (upcoming)
 * **UI:** TailwindCSS, Lucide Icons
 * **Payments:** Paystack integration
+
+## Links
+
+* [Project Website](https://mavuno-hedera.netlify.app/)
+* [Demo Video](https://youtu.be/iFlyOgZJlYg?si=TNjaoomDKI8zX77h)
+* [Pitch Deck](https://www.canva.com/design/DAG2-f83UzM/JMrjo-iDnDi6nKNgd76L7w/edit?utm_content=DAG2-f83UzM&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+* [Certification](https://drive.google.com/file/d/1mWjpUafZlelqcIPvuEbfECXrNoD8OUwh/view?usp=sharing)
