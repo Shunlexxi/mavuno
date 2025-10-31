@@ -189,4 +189,4 @@ Handles all liquidity, loans, and repayments for a specific fiat-backed pool. Fa
 * [Demo Video](https://youtu.be/iFlyOgZJlYg?si=TNjaoomDKI8zX77h)
 * [Pitch Deck](https://www.canva.com/design/DAG2-f83UzM/JMrjo-iDnDi6nKNgd76L7w/edit?utm_content=DAG2-f83UzM&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 * [Certification - Taiwo](https://drive.google.com/file/d/1mWjpUafZlelqcIPvuEbfECXrNoD8OUwh/view?usp=sharing)
-[Certification - Ibrahim](https://drive.google.com/file/d/1hxNaWWOZ2JBN-DIIbbXVss5sBwVKfSOS/view?usp=sharing)
+* [Certification - Ibrahim](https://drive.google.com/file/d/1hxNaWWOZ2JBN-DIIbbXVss5sBwVKfSOS/view?usp=sharing)
