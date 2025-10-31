@@ -1,9 +1,10 @@
 # Mavuno
 Selected Hackathon Track:
 Onchain Finance & RWA (Track 1)
----
 
-**Mavuno empowers farmers  farmers through community-backed micro-lending on Hedera Hashgraph**
+Empowering farmers through community-backed micro-lending on Hedera Hashgraph
+
+---
 
 Mavuno is a digital lending platform built for farmers in Africa. Unlike traditional banks or crypto platforms that demand heavy collateral, Mavuno uses a simple community pledge system. Farmers don't have to lock up land, titles, assets, or large savings. Instead, friends, family, or supporters can pledge funds on their behalf in HBAR. This makes it possible for farmers to access small loans in their local currency that can go straight to their bank accounts or ATM cards without necessarily dealing with the complexity of cryptocurrency or web3 wallets.
 
