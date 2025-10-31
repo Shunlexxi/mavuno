@@ -1,6 +1,9 @@
 # Mavuno
+Selected Hackathon Track:
+Onchain Finance & RWA (Track 1)
+---
 
-**Empowering farmers through community-backed micro-lending on Hedera Hashgraph**
+**Mavuno empowers farmers  farmers through community-backed micro-lending on Hedera Hashgraph**
 
 Mavuno is a digital lending platform built for farmers in Africa. Unlike traditional banks or crypto platforms that demand heavy collateral, Mavuno uses a simple community pledge system. Farmers don't have to lock up land, titles, assets, or large savings. Instead, friends, family, or supporters can pledge funds on their behalf in HBAR. This makes it possible for farmers to access small loans in their local currency that can go straight to their bank accounts or ATM cards without necessarily dealing with the complexity of cryptocurrency or web3 wallets.
 
@@ -8,6 +11,13 @@ The goal is to make credit fair, transparent, accessible, and designed for real-
 
 ---
 
+## Hedera Integration Summary
+
+Mavuno integrates **Hedera Hashgraph** as its primary distributed ledger for managing lending, pledging, and farmer registration. The platform leverages the **Hedera Token Service (HTS)** and **Hedera Smart Contracts (Solidity)** to ensure transparency, immutability, and high-speed financial interactions between farmers, pledgers, and liquidity providers.
+
+By building on Hedera, Mavuno benefits from **low transaction fees**, **carbon-negative consensus**, and **finality within seconds**, making it an ideal infrastructure for agricultural micro-lending in emerging markets.
+
+---
 ## Setup Steps
 * **UI (React App) - Local Development**
 Follow the steps below to run the project locally:
@@ -68,6 +78,37 @@ Follow the steps below to deploy the smart contracts to the testnet:
    Deploying contracts...
    ...
    Deployment successful!
+---
+### Transaction Types
+
+The following categories of on-chain transactions occur within the Mavuno ecosystem:
+
+#### a. Farmer Registration
+- Triggered when a farmer registers through the **FarmerRegistry** contract.  
+- The contract deploys a new **PledgeManager** specific to that farmer.  
+- Includes the upload of off-chain metadata (e.g., farmer profile, documents) to **IPFS**, with the URI stored on-chain.
+
+#### b. Pledging Transactions
+- Pledgers send **HBAR** to a farmer’s PledgeManager contract.  
+- In return, they receive **fLP tokens** (Farmer Liquidity Pledge tokens).  
+- The contract records the transaction, ensuring both transparency and traceability.
+
+#### c. Borrowing & Repayment
+- Farmers borrow tokenized fiat against their pledges through the **LendingPool** contract.  
+- Borrowing transactions involve smart contract calls that calculate Loan-to-Value (LTV), interest, and repayment schedules.  
+- Repayments trigger events that adjust the debt and release pledged assets accordingly.
+
+#### d. Liquidity Provision
+- Liquidity Providers deposit stable assets (tokenized fiat) into the **LendingPool**.  
+- They receive **pLP tokens** representing their stake in the pool.  
+- Withdrawals burn pLP tokens and release liquidity proportionally.
+
+#### e. Liquidation
+- Automatically triggered when a farmer’s **health factor** falls below 96%.  
+- The LendingPool calls the PledgeManager to seize pledged HBAR and repay outstanding debt.  
+- Maintains protocol solvency and ensures fairness for lenders.
+
+---
 
 ## Contract Architecture
 
@@ -80,6 +121,22 @@ The Mavuno protocol is powered by three core contracts:
 ![Mavuno Flow Diagram](assets/mavuno-flow-diagram.jpg)
 
 Figure: High-level flow — farmers register via FarmerRegistry which deploys per-farmer PledgeManagers; pledgers stake HBAR into PledgeManagers and receive fLP; LendingPool supplies/borrows tokenized fiat, interacts with PledgeManagers for liquidation; off-chain services (IPFS profiles, Paystack on/off-ramp, Firebase/The Graph indexing) support the flow.
+
+---
+
+### Economic Justification
+
+The decision to integrate Hedera Hashgraph is guided by the following economic considerations:
+
+| Factor | Hedera Advantage | Mavuno Benefit |
+|--------|------------------|----------------|
+| **Transaction Cost** | ~$0.0001 per transaction | Enables micro-loans without overhead |
+| **Speed & Finality** | ~3–5 seconds | Real-time lending and repayment confirmations |
+| **Scalability** | 10,000+ TPS | Supports large-scale community pledging |
+| **Energy Efficiency** | Carbon-negative | Aligns with Mavuno’s sustainability mission |
+| **Stable Governance** | Hedera Council (Google, IBM, etc.) | Ensures long-term network reliability |
+
+This cost structure ensures Mavuno can scale to thousands of farmers while maintaining operational viability, even for small loan amounts under $10.
 
 ---
 
