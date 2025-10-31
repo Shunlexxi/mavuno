@@ -77,7 +77,9 @@ The Mavuno protocol is powered by three core contracts:
 2. **PledgeManager** – Manages pledges of HBAR for each farmer.
 3. **LendingPool** – Handles liquidity pools, borrowing, repayment, and liquidation.
 
-<img width="811" height="501" alt="mavuno2 drawio" src="https://github.com/user-attachments/assets/bd7da69f-7fd3-4949-8058-47f59b0cee46" />
+![Mavuno Flow Diagram](./Mavuno%20Flow%20Diagram.jpg)
+
+Figure: High-level flow — farmers register via FarmerRegistry which deploys per-farmer PledgeManagers; pledgers stake HBAR into PledgeManagers and receive fLP; LendingPool supplies/borrows tokenized fiat, interacts with PledgeManagers for liquidation; off-chain services (IPFS profiles, Paystack on/off-ramp, Firebase/The Graph indexing) support the flow.
 
 ---
 
@@ -186,4 +188,5 @@ Handles all liquidity, loans, and repayments for a specific fiat-backed pool. Fa
 * [Project Website](https://mavuno-hedera.netlify.app/)
 * [Demo Video](https://youtu.be/iFlyOgZJlYg?si=TNjaoomDKI8zX77h)
 * [Pitch Deck](https://www.canva.com/design/DAG2-f83UzM/JMrjo-iDnDi6nKNgd76L7w/edit?utm_content=DAG2-f83UzM&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
-* [Certification](https://drive.google.com/file/d/1mWjpUafZlelqcIPvuEbfECXrNoD8OUwh/view?usp=sharing)
+* [Certification - Taiwo](https://drive.google.com/file/d/1mWjpUafZlelqcIPvuEbfECXrNoD8OUwh/view?usp=sharing)
+[Certification - Ibrahim](https://drive.google.com/file/d/1hxNaWWOZ2JBN-DIIbbXVss5sBwVKfSOS/view?usp=sharing)
