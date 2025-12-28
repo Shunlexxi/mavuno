@@ -10,10 +10,11 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Home, Users, User, MessageSquare, ArrowLeft } from "lucide-react";
+import { Home, Users, User, MessageSquare, ArrowLeft, ShoppingBag } from "lucide-react";
 
 const farmerItems = [
   { title: "Dashboard", url: "/farmer/dashboard", icon: Home },
+  { title: "Marketplace", url: "/farmer/marketplace", icon: ShoppingBag },
   { title: "My Timeline", url: "/farmer/timeline", icon: MessageSquare },
   { title: "Profile", url: "/farmer/profile", icon: User },
   { title: "Back to Pools", url: "/", icon: ArrowLeft },

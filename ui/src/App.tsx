@@ -21,6 +21,13 @@ import { createAppKit } from "@reown/appkit/react";
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import FarmerPage from "./pages/pledger/FarmerPage";
+import { CartProvider } from "./contexts/CartContext";
+import Marketplace from "./pages/farmer/Marketplace";
+import MarketplaceCategory from "./pages/farmer/MarketplaceCategory";
+import MarketplaceProduct from "./pages/farmer/MarketplaceProduct";
+import MarketplaceCart from "./pages/farmer/MarketplaceCart";
+import MarketplaceSearch from "./pages/farmer/MarketplaceSearch";
+import MarketplaceAllProducts from "./pages/farmer/MarketplaceAllProducts";
 
 const queryClient = new QueryClient();
 
@@ -73,35 +80,43 @@ getAnalytics(app);
 const App = () => (
   <WagmiProvider config={wagmiAdapter.wagmiConfig}>
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/farmer/login" element={<FarmerAuth mode="login" />} />
-            <Route
-              path="/farmer/register"
-              element={<FarmerAuth mode="register" />}
-            />
+      <CartProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/farmer/login" element={<FarmerAuth mode="login" />} />
+              <Route
+                path="/farmer/register"
+                element={<FarmerAuth mode="register" />}
+              />
 
-            <Route path="/farmer" element={<AppLayout />}>
-              <Route path="dashboard" element={<FarmerDashboard />} />
-              <Route path="timeline" element={<FarmerTimeline />} />
-              <Route path="profile" element={<FarmerProfile />} />
-            </Route>
+              <Route path="/farmer" element={<AppLayout />}>
+                <Route path="dashboard" element={<FarmerDashboard />} />
+                <Route path="marketplace" element={<Marketplace />} />
+                <Route path="marketplace/all" element={<MarketplaceAllProducts />} />
+                <Route path="marketplace/category/:category" element={<MarketplaceCategory />} />
+                <Route path="marketplace/product/:id" element={<MarketplaceProduct />} />
+                <Route path="marketplace/cart" element={<MarketplaceCart />} />
+                <Route path="marketplace/search" element={<MarketplaceSearch />} />
+                <Route path="timeline" element={<FarmerTimeline />} />
+                <Route path="profile" element={<FarmerProfile />} />
+              </Route>
 
-            <Route path="/pledger" element={<AppLayout />}>
-              <Route path="dashboard" element={<PledgerDashboard />} />
-              <Route path="farmers" element={<FarmersDirectory />} />
-              <Route path="pledge/:farmerAddress" element={<PledgePage />} />
-              <Route path="farmers/:farmerAddress" element={<FarmerPage />} />
-            </Route>
+              <Route path="/pledger" element={<AppLayout />}>
+                <Route path="dashboard" element={<PledgerDashboard />} />
+                <Route path="farmers" element={<FarmersDirectory />} />
+                <Route path="pledge/:farmerAddress" element={<PledgePage />} />
+                <Route path="farmers/:farmerAddress" element={<FarmerPage />} />
+              </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </CartProvider>
     </QueryClientProvider>
   </WagmiProvider>
 );
