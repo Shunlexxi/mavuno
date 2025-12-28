@@ -1,4 +1,8 @@
 import { Product, ProductCategory, Merchant, RentalProduct } from "@/types/marketplace";
+import maizeSeedsImage from "@/assets/maize-seeds.jpg";
+import npkFertilizerImage from "@/assets/npk-fertilizer.jpeg";
+import professionalHoeImage from "@/assets/professional-hoe.jpg";
+import wheelBarrowImage from "@/assets/wheel-barrow-heavy.jpg";
 
 const merchants: Merchant[] = [
   {
@@ -56,7 +60,7 @@ const products: (Product | RentalProduct)[] = [
     currency: "NGN",
     category: "seeds",
     merchant: merchants[3],
-    images: ["https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400"],
+    images: [maizeSeedsImage],
     inStock: true,
     stockQuantity: 150,
     rating: 4.8,
@@ -125,7 +129,7 @@ const products: (Product | RentalProduct)[] = [
     currency: "NGN",
     category: "fertilizers",
     merchant: merchants[0],
-    images: ["https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400"],
+    images: [npkFertilizerImage],
     inStock: true,
     stockQuantity: 75,
     rating: 4.9,
@@ -189,7 +193,7 @@ const products: (Product | RentalProduct)[] = [
     currency: "NGN",
     category: "tools",
     merchant: merchants[1],
-    images: ["https://images.unsplash.com/photo-1592496431122-2349e0fbc666?w=400"],
+    images: [professionalHoeImage],
     inStock: true,
     stockQuantity: 67,
     rating: 4.6,
@@ -275,7 +279,7 @@ const products: (Product | RentalProduct)[] = [
     currency: "NGN",
     category: "equipment",
     merchant: merchants[2],
-    images: ["https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400"],
+    images: [wheelBarrowImage],
     inStock: true,
     stockQuantity: 28,
     rating: 4.9,
